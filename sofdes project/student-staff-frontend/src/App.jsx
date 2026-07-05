@@ -14,7 +14,6 @@ import {
 
 const allNavItems = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { to: '/staff', label: 'Staff Menu', icon: ShieldCheck, roles: ['Staff'] },
   { to: '/report-lost', label: 'Report Lost', icon: FilePlus2 },
   { to: '/report-found', label: 'Report Found', icon: PackageOpen },
   { to: '/search', label: 'Search', icon: Search },
