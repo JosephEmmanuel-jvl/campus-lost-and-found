@@ -217,7 +217,7 @@ export default function LostReportDetails() {
                           Confirm Match
                         </button>
                       ) : (
-                        <PrimaryLink to={`/claim?found_id=${item.rawId}`} icon={ClipboardCheck}>Start claim</PrimaryLink>
+                        <PrimaryLink to={`/claim/${item.rawId}`} icon={ClipboardCheck}>Start claim</PrimaryLink>
                       )}
                     </div>
                   </article>
