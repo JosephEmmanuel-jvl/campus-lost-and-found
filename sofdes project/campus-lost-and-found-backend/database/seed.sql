@@ -31,7 +31,6 @@ TRUNCATE TABLE claim_request;
 TRUNCATE TABLE found_item_report;
 TRUNCATE TABLE lost_item_report;
 TRUNCATE TABLE user;
-SET FOREIGN_KEY_CHECKS = 1;
 
 -- ---------------------------------------------------------------------------
 -- USERS (1 Admin, 1 Staff, 3 Students) - password for all: Password123!
@@ -86,3 +85,6 @@ INSERT INTO notification
 ('2022-10002', 'Claim Approved', 'Your claim for the Blue Hydro Flask has been approved. You may retrieve the item from Campus Security.', 'Claim', 1, FALSE),
 ('2022-10001', 'Claim Submitted', 'Your claim for the Silver Wristwatch has been submitted and is awaiting administrative review.', 'Claim', 2, FALSE),
 ('2021-00002', 'New Found Report Recorded', 'Your found item report "Silver Wristwatch" has been recorded in the system.', 'General', 2, FALSE);
+
+SET FOREIGN_KEY_CHECKS = 1;
+
