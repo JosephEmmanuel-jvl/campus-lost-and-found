@@ -79,10 +79,10 @@ export default function AppShell() {
         <div className="border-b border-slate-200 px-6 py-6">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-md bg-campus-green text-sm font-bold text-white">
-              5NF
+              CLF
             </div>
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-campus-green">5NF</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-campus-green">Camplus</p>
               <h2 className="text-xl font-bold">Lost & Found</h2>
             </div>
           </div>
@@ -125,10 +125,10 @@ export default function AppShell() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-md bg-campus-green text-xs font-bold text-white">
-              5NF
+              CLF
             </div>
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-campus-green">5NF</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-campus-green">Camplus</p>
               <p className="font-bold">Lost & Found</p>
             </div>
           </div>

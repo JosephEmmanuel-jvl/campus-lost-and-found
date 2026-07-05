@@ -53,10 +53,10 @@ export default function Login() {
         <div className="py-8">
           <div className="mb-8 inline-flex items-center gap-3 rounded-full border border-campus-green/20 bg-white px-4 py-2 text-sm font-semibold text-campus-green shadow-sm">
             <Building2 className="h-4 w-4" />
-            5NF
+            Camplus
           </div>
           <h1 className="max-w-3xl text-4xl font-bold leading-tight tracking-normal md:text-6xl">
-            5NF Lost & Found
+            Camplus Lost & Found
           </h1>
           <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-600">
             Report lost belongings, review found items from campus offices, and follow claim updates from one organized portal.
