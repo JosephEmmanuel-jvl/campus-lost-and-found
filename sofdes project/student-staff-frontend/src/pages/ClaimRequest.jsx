@@ -15,6 +15,11 @@ export default function ClaimRequest() {
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
 
+  // Dropdown states if no ID in path
+  const [unclaimedItems, setUnclaimedItems] = useState([]);
+  const [selectedItemId, setSelectedItemId] = useState('');
+  const [loadingList, setLoadingList] = useState(false);
+
   useEffect(() => {
     // Parse user profile
     try {
@@ -24,12 +29,13 @@ export default function ClaimRequest() {
       console.error('Error parsing user from localStorage', e);
     }
 
+    const token = localStorage.getItem('token');
+
     // Fetch found item details if ID is present
     if (foundId) {
       const fetchFoundItem = async () => {
         setLoadingItem(true);
         setError('');
-        const token = localStorage.getItem('token');
         try {
           const response = await fetch(`http://127.0.0.1:5000/api/v1/found-items/${foundId}`, {
             headers: {
@@ -38,7 +44,7 @@ export default function ClaimRequest() {
           });
           const json = await response.json();
           if (response.ok) {
-            setItem(json.data.foundItem || json.data);
+            setItem(json.data.report || json.data.foundItem || json.data);
           } else {
             throw new Error(json.message || 'Failed to fetch found item.');
           }
@@ -49,12 +55,64 @@ export default function ClaimRequest() {
         }
       };
       fetchFoundItem();
+    } else {
+      // Fetch list of unclaimed found items to choose from
+      const fetchUnclaimedList = async () => {
+        setLoadingList(true);
+        try {
+          const response = await fetch('http://127.0.0.1:5000/api/v1/found-items?status=Unclaimed', {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            },
+          });
+          const json = await response.json();
+          if (response.ok) {
+            setUnclaimedItems(json.data.reports || []);
+          }
+        } catch (err) {
+          console.error('Error fetching unclaimed found items', err);
+        } finally {
+          setLoadingList(false);
+        }
+      };
+      fetchUnclaimedList();
     }
   }, [foundId]);
 
+  const handleSelectChange = async (e) => {
+    const id = e.target.value;
+    setSelectedItemId(id);
+    if (!id) {
+      setItem(null);
+      return;
+    }
+
+    setLoadingItem(true);
+    setError('');
+    const token = localStorage.getItem('token');
+    try {
+      const response = await fetch(`http://127.0.0.1:5000/api/v1/found-items/${id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      const json = await response.json();
+      if (response.ok) {
+        setItem(json.data.report || json.data.foundItem || json.data);
+      } else {
+        throw new Error(json.message || 'Failed to fetch found item.');
+      }
+    } catch (err) {
+      setError(err.message || 'Error loading selected item details.');
+    } finally {
+      setLoadingItem(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!foundId) {
+    const activeId = foundId || selectedItemId;
+    if (!activeId) {
       setError('No found item selected to claim.');
       return;
     }
@@ -72,14 +130,14 @@ export default function ClaimRequest() {
           'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
-          found_report_id: Number(foundId),
+          found_report_id: Number(activeId),
           proof_of_ownership: proofOfOwnership,
         }),
       });
 
       const json = await response.json();
       if (response.ok) {
-        setSuccessMsg('Your claim request was successfully submitted! Redirection to notifications...');
+        setSuccessMsg('Your claim request was successfully submitted! Redirecting to notifications...');
         setTimeout(() => {
           navigate('/notifications');
         }, 2000);
@@ -103,6 +161,30 @@ export default function ClaimRequest() {
 
       <div className="grid gap-6 xl:grid-cols-[380px_1fr]">
         <SectionCard title="Selected found item">
+          {!foundId && (
+            <div className="mb-5">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Select found item to claim</label>
+              {loadingList ? (
+                <div className="flex items-center gap-2 text-sm text-slate-500">
+                  <Loader2 className="h-4 w-4 animate-spin text-campus-green" /> Loading inventory...
+                </div>
+              ) : (
+                <select
+                  className="w-full rounded-md border border-slate-300 bg-white px-3 py-2.5 text-sm text-campus-ink outline-none focus:border-campus-green focus:ring-2 focus:ring-campus-green/20"
+                  value={selectedItemId}
+                  onChange={handleSelectChange}
+                >
+                  <option value="">Choose an item...</option>
+                  {unclaimedItems.map((u) => (
+                    <option key={u.found_report_id || u.id} value={u.found_report_id || u.id}>
+                      {u.item_name} (FND-{String(u.found_report_id || u.id).padStart(4, '0')} - {u.location_found})
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+          )}
+
           {loadingItem && (
             <div className="flex h-40 items-center justify-center">
               <Loader2 className="h-8 w-8 animate-spin text-campus-green" />
@@ -132,7 +214,7 @@ export default function ClaimRequest() {
 
           {!loadingItem && !item && (
             <div className="text-sm text-slate-500 py-4 text-center">
-              No item selected. Please start a claim from the Search catalog page.
+              {foundId ? "No item selected. Please start a claim from the Search catalog page." : "Choose an item from the dropdown list above to proceed."}
             </div>
           )}
         </SectionCard>
