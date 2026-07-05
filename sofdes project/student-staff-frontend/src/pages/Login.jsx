@@ -61,18 +61,6 @@ export default function Login() {
           <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-600">
             Report lost belongings, review found items from campus offices, and follow claim updates from one organized portal.
           </p>
-          <div className="mt-8 grid max-w-2xl gap-3 sm:grid-cols-3">
-            {[
-              ['8', 'Campus offices'],
-              ['42', 'June reports'],
-              ['91%', 'Returned items'],
-            ].map(([value, label]) => (
-              <div key={label} className="rounded-lg border border-white bg-white/80 p-4 shadow-sm">
-                <p className="text-2xl font-bold">{value}</p>
-                <p className="mt-1 text-sm text-slate-500">{label}</p>
-              </div>
-            ))}
-          </div>
         </div>
 
         <div className="rounded-lg border border-white bg-white p-7 shadow-soft">
