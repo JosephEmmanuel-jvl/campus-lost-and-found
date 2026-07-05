@@ -64,6 +64,7 @@ function Root() {
             <Route path="/lost-reports/:id" element={<LostReportDetails />} />
             <Route path="/notifications" element={<Notifications />} />
             <Route path="/claim" element={<ClaimRequest />} />
+            <Route path="/claim/:foundId" element={<ClaimRequest />} />
             <Route path="/claim-request" element={<Navigate to="/claim" replace />} />
             <Route path="/profile" element={<Profile />} />
 

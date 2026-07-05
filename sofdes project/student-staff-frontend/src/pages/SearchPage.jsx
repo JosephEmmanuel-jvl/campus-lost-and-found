@@ -45,7 +45,7 @@ export default function SearchPage() {
             date: r.date,
             location: r.location,
             description: r.description,
-            route: r.report_type === 'lost' ? `/lost-reports/${r.report_id}` : '/claim',
+            route: r.report_type === 'lost' ? `/lost-reports/${r.report_id}` : `/claim/${r.report_id}`,
             actionLabel: r.report_type === 'lost' ? 'View report' : 'Start claim',
             thumbnail: r.category.toLowerCase() === 'electronics' ? 'laptop' : null,
           }));

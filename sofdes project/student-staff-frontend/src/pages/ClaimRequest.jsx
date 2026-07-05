@@ -1,10 +1,97 @@
-import { Link } from 'react-router-dom';
-import { ArrowRight, FileCheck2 } from 'lucide-react';
-import { currentStudent, foundItems } from '../data/mockData';
+import { useState, useEffect } from 'react';
+import { Link, useParams, useNavigate } from 'react-router-dom';
+import { ArrowRight, FileCheck2, Loader2 } from 'lucide-react';
 import { AlertStrip, FormField, ItemThumbnail, PageHeader, SectionCard, StatusBadge, inputClasses, textareaClasses } from '../components/ui';
 
 export default function ClaimRequest() {
-  const item = foundItems[0];
+  const { foundId } = useParams();
+  const navigate = useNavigate();
+
+  const [item, setItem] = useState(null);
+  const [loadingItem, setLoadingItem] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [proofOfOwnership, setProofOfOwnership] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
+
+  useEffect(() => {
+    // Parse user profile
+    try {
+      const user = JSON.parse(localStorage.getItem('user'));
+      setCurrentUser(user);
+    } catch (e) {
+      console.error('Error parsing user from localStorage', e);
+    }
+
+    // Fetch found item details if ID is present
+    if (foundId) {
+      const fetchFoundItem = async () => {
+        setLoadingItem(true);
+        setError('');
+        const token = localStorage.getItem('token');
+        try {
+          const response = await fetch(`http://localhost:5000/api/v1/found-items/${foundId}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            },
+          });
+          const json = await response.json();
+          if (response.ok) {
+            setItem(json.data.foundItem || json.data);
+          } else {
+            throw new Error(json.message || 'Failed to fetch found item.');
+          }
+        } catch (err) {
+          setError(err.message || 'Error loading selected item details.');
+        } finally {
+          setLoadingItem(false);
+        }
+      };
+      fetchFoundItem();
+    }
+  }, [foundId]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!foundId) {
+      setError('No found item selected to claim.');
+      return;
+    }
+
+    setSubmitting(true);
+    setError('');
+    setSuccessMsg('');
+
+    const token = localStorage.getItem('token');
+    try {
+      const response = await fetch('http://localhost:5000/api/v1/claims', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          found_report_id: Number(foundId),
+          proof_of_ownership: proofOfOwnership,
+        }),
+      });
+
+      const json = await response.json();
+      if (response.ok) {
+        setSuccessMsg('Your claim request was successfully submitted! Redirection to notifications...');
+        setTimeout(() => {
+          navigate('/notifications');
+        }, 2000);
+      } else {
+        throw new Error(json.message || 'Failed to submit claim.');
+      }
+    } catch (err) {
+      setError(err.message || 'Something went wrong while submitting your claim.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -16,20 +103,38 @@ export default function ClaimRequest() {
 
       <div className="grid gap-6 xl:grid-cols-[380px_1fr]">
         <SectionCard title="Selected found item">
-          <ItemThumbnail type={item.thumbnail} />
-          <div className="mt-5 space-y-3">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="font-bold text-campus-ink">{item.title}</p>
-                <p className="mt-1 text-sm text-slate-500">{item.id} - {item.category}</p>
+          {loadingItem && (
+            <div className="flex h-40 items-center justify-center">
+              <Loader2 className="h-8 w-8 animate-spin text-campus-green" />
+            </div>
+          )}
+          
+          {!loadingItem && item && (
+            <>
+              <ItemThumbnail type={item.category?.toLowerCase() === 'electronics' ? 'laptop' : null} />
+              <div className="mt-5 space-y-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="font-bold text-campus-ink">{item.item_name}</p>
+                    <p className="mt-1 text-sm text-slate-500">
+                      FND-{String(item.found_report_id || item.id).padStart(4, '0')} - {item.category}
+                    </p>
+                  </div>
+                  <StatusBadge value={item.status === 'Unclaimed' ? 'Available' : item.status} />
+                </div>
+                <p className="text-sm leading-6 text-slate-600">{item.description}</p>
+                <div className="rounded-md bg-slate-50 p-3 text-sm text-slate-600">
+                  Found Location: <span className="font-semibold text-campus-ink">{item.location_found}</span>
+                </div>
               </div>
-              <StatusBadge value={item.status} />
+            </>
+          )}
+
+          {!loadingItem && !item && (
+            <div className="text-sm text-slate-500 py-4 text-center">
+              No item selected. Please start a claim from the Search catalog page.
             </div>
-            <p className="text-sm leading-6 text-slate-600">{item.description}</p>
-            <div className="rounded-md bg-slate-50 p-3 text-sm text-slate-600">
-              Held at <span className="font-semibold text-campus-ink">{item.intakeOffice}</span>
-            </div>
-          </div>
+          )}
         </SectionCard>
 
         <div className="space-y-6">
@@ -38,34 +143,62 @@ export default function ClaimRequest() {
           </AlertStrip>
 
           <SectionCard title="Claimant information" subtitle="Details used by campus staff to verify ownership">
-            <form className="grid gap-5">
+            <form onSubmit={handleSubmit} className="grid gap-5">
+              {error && (
+                <div className="rounded bg-red-50 p-3 text-sm text-red-600 border border-red-200">
+                  {error}
+                </div>
+              )}
+              {successMsg && (
+                <div className="rounded bg-green-50 p-3 text-sm text-green-600 border border-green-200 font-medium">
+                  {successMsg}
+                </div>
+              )}
+              
               <div className="grid gap-5 md:grid-cols-2">
                 <FormField label="Student name">
-                  <input name="student_name" className={inputClasses} placeholder={currentStudent.name || 'Enter full name'} />
+                  <input
+                    disabled
+                    className={`${inputClasses} bg-slate-50 cursor-not-allowed`}
+                    value={currentUser ? `${currentUser.first_name} ${currentUser.last_name}` : ''}
+                    placeholder="Student name"
+                  />
                 </FormField>
                 <FormField label="Student ID">
-                  <input name="student_id" className={inputClasses} placeholder={currentStudent.studentId || 'Enter university ID'} />
+                  <input
+                    disabled
+                    className={`${inputClasses} bg-slate-50 cursor-not-allowed`}
+                    value={currentUser?.university_id || ''}
+                    placeholder="Student ID"
+                  />
                 </FormField>
                 <FormField label="University email">
-                  <input name="email" className={inputClasses} placeholder={currentStudent.email || 'Enter university email'} />
+                  <input
+                    disabled
+                    className={`${inputClasses} bg-slate-50 cursor-not-allowed`}
+                    value={currentUser?.email || ''}
+                    placeholder="University email"
+                  />
                 </FormField>
                 <FormField label="Phone">
-                  <input name="phone" className={inputClasses} placeholder="Enter contact number" />
+                  <input
+                    disabled
+                    className={`${inputClasses} bg-slate-50 cursor-not-allowed`}
+                    value={currentUser?.contact_number || 'None provided'}
+                    placeholder="Phone"
+                  />
                 </FormField>
               </div>
 
               <FormField label="Ownership details">
-                <textarea name="proof_of_ownership" className={textareaClasses} placeholder="Describe details only the owner would know." />
-              </FormField>
-
-              <FormField label="Preferred pickup office">
-                <select name="pickup_office" className={inputClasses} defaultValue="">
-                  <option value="" disabled>Select pickup office</option>
-                  <option>Campus Safety Office</option>
-                  <option>Library Circulation Desk</option>
-                  <option>Student Affairs Desk</option>
-                  <option>Athletics Front Desk</option>
-                </select>
+                <textarea
+                  name="proof_of_ownership"
+                  value={proofOfOwnership}
+                  onChange={(e) => setProofOfOwnership(e.target.value)}
+                  className={textareaClasses}
+                  placeholder="Describe details only the owner would know (e.g. stickers, contents, passwords, purchase details)."
+                  required
+                />
               </FormField>
 
               <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
@@ -73,7 +206,7 @@ export default function ClaimRequest() {
                   <FileCheck2 className="h-5 w-5 text-campus-green" />
                   <div>
                     <p className="font-semibold text-campus-ink">Supporting evidence</p>
-                    <p className="text-sm text-slate-500">Receipt, serial number, or photo proof</p>
+                    <p className="text-sm text-slate-500">Manual verification happens securely at pickup.</p>
                   </div>
                 </div>
               </div>
@@ -82,10 +215,14 @@ export default function ClaimRequest() {
                 <Link to="/search" className="inline-flex justify-center rounded-md border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">
                   Back to items
                 </Link>
-                <Link to="/notifications" className="inline-flex items-center justify-center gap-2 rounded-md bg-campus-green px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-800">
-                  Submit claim
+                <button
+                  type="submit"
+                  disabled={submitting || !item || item.status === 'Claimed'}
+                  className="inline-flex items-center justify-center gap-2 rounded-md bg-campus-green px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-800 disabled:opacity-50"
+                >
+                  {submitting ? 'Submitting...' : 'Submit claim'}
                   <ArrowRight className="h-4 w-4" />
-                </Link>
+                </button>
               </div>
             </form>
           </SectionCard>
@@ -94,3 +231,4 @@ export default function ClaimRequest() {
     </div>
   );
 }
+
