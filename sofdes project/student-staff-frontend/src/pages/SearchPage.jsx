@@ -1,65 +1,76 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ClipboardCheck, Filter, Search, SlidersHorizontal } from 'lucide-react';
-import { categories, campusLocations, foundItems, lostReports } from '../data/mockData';
+import { categories, campusLocations } from '../data/mockData';
 import { EmptyState, ItemThumbnail, PageHeader, SectionCard, StatusBadge, inputClasses, selectClasses } from '../components/ui';
-
-function normalize(value) {
-  return String(value || '').toLowerCase();
-}
-
-function buildRows() {
-  const lostRows = lostReports.map((report) => ({
-    id: report.id,
-    type: 'Lost Report',
-    title: report.title,
-    category: report.category,
-    status: report.status,
-    date: report.lostDate,
-    location: report.location,
-    description: report.description,
-    route: `/lost-reports/${report.id}`,
-    actionLabel: 'View report',
-    thumbnail: null,
-  }));
-
-  const foundRows = foundItems.map((item) => ({
-    id: item.id,
-    type: 'Found Item',
-    title: item.title,
-    category: item.category,
-    status: item.status,
-    date: item.foundDate,
-    location: item.location,
-    description: item.description,
-    route: '/claim',
-    actionLabel: 'Start claim',
-    thumbnail: item.thumbnail,
-  }));
-
-  return [...lostRows, ...foundRows];
-}
 
 export default function SearchPage() {
   const [keyword, setKeyword] = useState('');
   const [category, setCategory] = useState('All categories');
   const [location, setLocation] = useState('All locations');
   const [type, setType] = useState('All reports');
+  const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const rows = useMemo(() => buildRows(), []);
-  const results = useMemo(() => {
-    return rows.filter((row) => {
-      const keywordMatch =
-        !keyword ||
-        [row.title, row.description, row.location, row.category, row.id].some((field) =>
-          normalize(field).includes(normalize(keyword))
-        );
-      const categoryMatch = category === 'All categories' || row.category === category;
-      const locationMatch = location === 'All locations' || row.location.includes(location);
-      const typeMatch = type === 'All reports' || row.type === type;
-      return keywordMatch && categoryMatch && locationMatch && typeMatch;
-    });
-  }, [category, keyword, location, rows, type]);
+  useEffect(() => {
+    const fetchResults = async () => {
+      setLoading(true);
+      setError('');
+      const token = localStorage.getItem('token');
+      
+      const params = new URLSearchParams();
+      if (keyword) params.append('keyword', keyword);
+      if (category && category !== 'All categories') params.append('category', category);
+      if (location && location !== 'All locations') params.append('location', location);
+
+      try {
+        const response = await fetch(`http://localhost:5000/api/v1/search?${params.toString()}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        const json = await response.json();
+
+        if (response.ok) {
+          const rawResults = json.data.results || [];
+          const mapped = rawResults.map(r => ({
+            id: r.report_type === 'lost' ? `LST-${String(r.report_id).padStart(4, '0')}` : `FND-${String(r.report_id).padStart(4, '0')}`,
+            rawId: r.report_id,
+            type: r.report_type === 'lost' ? 'Lost Report' : 'Found Item',
+            title: r.item_name,
+            category: r.category,
+            status: r.status === 'Unclaimed' ? 'Available' : r.status,
+            date: r.date,
+            location: r.location,
+            description: r.description,
+            route: r.report_type === 'lost' ? `/lost-reports/${r.report_id}` : '/claim',
+            actionLabel: r.report_type === 'lost' ? 'View report' : 'Start claim',
+            thumbnail: r.category.toLowerCase() === 'electronics' ? 'laptop' : null,
+          }));
+          setResults(mapped);
+        } else {
+          throw new Error(json.message || 'Failed to search records.');
+        }
+      } catch (err) {
+        setError(err.message || 'Error connecting to search server.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    // Debounce search slightly to avoid excessive API calls while typing
+    const timeoutId = setTimeout(() => {
+      fetchResults();
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [keyword, category, location]);
+
+  const filteredResults = useMemo(() => {
+    return results.filter((row) => type === 'All reports' || row.type === type);
+  }, [results, type]);
 
   return (
     <div className="space-y-6">
@@ -102,18 +113,25 @@ export default function SearchPage() {
 
       <SectionCard
         title="Results"
-        subtitle={`${results.length} matching record${results.length === 1 ? '' : 's'}`}
+        subtitle={loading ? 'Searching...' : `${filteredResults.length} matching record${filteredResults.length === 1 ? '' : 's'}`}
         action={
           <span className="inline-flex items-center gap-2 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-600">
             <Filter className="h-4 w-4" />
-            Local data
+            Database API
           </span>
         }
       >
-        {results.length ? (
+        {error && (
+          <div className="rounded bg-red-50 p-4 border border-red-200 text-red-700 mb-4">
+            <p className="font-bold">Search error</p>
+            <p className="text-sm mt-1">{error}</p>
+          </div>
+        )}
+
+        {filteredResults.length ? (
           <div className="grid gap-4 xl:grid-cols-2">
-            {results.map((row) => (
-              <article key={`${row.type}-${row.id}`} className="rounded-lg border border-slate-200 p-4">
+            {filteredResults.map((row) => (
+              <article key={`${row.type}-${row.rawId}`} className="rounded-lg border border-slate-200 p-4">
                 <div className="grid gap-4 sm:grid-cols-[140px_1fr]">
                   {row.thumbnail ? (
                     <ItemThumbnail type={row.thumbnail} className="min-h-32" />
@@ -148,7 +166,7 @@ export default function SearchPage() {
             ))}
           </div>
         ) : (
-          <EmptyState title="No records found" message="Adjust the keyword, category, location, or report type filters." />
+          !loading && <EmptyState title="No records found" message="Adjust the keyword, category, location, or report type filters." />
         )}
       </SectionCard>
     </div>
