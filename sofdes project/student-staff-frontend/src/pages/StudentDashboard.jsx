@@ -128,24 +128,26 @@ export default function StudentDashboard() {
   const availableFoundItems = foundItems.filter((item) => item.status === 'Available');
   const unreadNotices = notifications.filter((note) => note.status === 'Unread');
 
+  const isStaff = currentUser?.role === 'Staff';
+
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Student dashboard"
+        eyebrow={isStaff ? "Staff dashboard" : "Student dashboard"}
         title={`Welcome back, ${currentUser?.first_name || 'User'}`}
-        description="Track reports, review possible matches, and start a claim when an item appears to be yours."
+        description={isStaff ? "Track your registered reports, match alerts, and system notifications." : "Track reports, review possible matches, and start a claim when an item appears to be yours."}
         action={<PrimaryLink to="/report-lost" icon={FilePlus2}>Report lost item</PrimaryLink>}
       />
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Active lost reports" value={activeLostReports.length} icon={Search} tone="blue" detail="Across student-owned reports" />
+        <StatCard label="Active lost reports" value={activeLostReports.length} icon={Search} tone="blue" detail={isStaff ? "Across staff-owned reports" : "Across student-owned reports"} />
         <StatCard label="Possible matches" value={possibleMatches.length} icon={ClipboardCheck} tone="green" detail="Awaiting claim review" />
         <StatCard label="Available found items" value={availableFoundItems.length} icon={PackageOpen} tone="amber" detail="Posted by campus offices" />
         <StatCard label="Unread notices" value={unreadNotices.length} icon={Bell} tone="rose" detail="Recent updates" />
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[1.25fr_0.75fr]">
-        <SectionCard title="My Lost Reports" subtitle="Recent items reported by the signed-in student">
+        <SectionCard title={isStaff ? "My Registered Reports" : "My Lost Reports"} subtitle={isStaff ? "Recent items reported by the signed-in staff member" : "Recent items reported by the signed-in student"}>
           <div className="overflow-x-auto">
             {lostReports.length === 0 ? (
               <p className="py-6 text-center text-sm text-slate-500">You haven't reported any lost items yet.</p>
