@@ -1,4 +1,4 @@
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import {
   Bell,
   ClipboardCheck,
@@ -11,9 +11,9 @@ import {
   UserRound,
 } from 'lucide-react';
 
-const navItems = [
+const allNavItems = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { to: '/staff', label: 'Staff Menu', icon: ShieldCheck },
+  { to: '/staff', label: 'Staff Menu', icon: ShieldCheck, roles: ['Staff', 'Admin'] },
   { to: '/report-lost', label: 'Report Lost', icon: FilePlus2 },
   { to: '/report-found', label: 'Report Found', icon: PackageOpen },
   { to: '/search', label: 'Search', icon: Search },
@@ -23,6 +23,31 @@ const navItems = [
 ];
 
 export default function AppShell() {
+  const navigate = useNavigate();
+
+  // Get current user role
+  let role = '';
+  try {
+    const user = JSON.parse(localStorage.getItem('user'));
+    role = user?.role || '';
+  } catch {
+    role = '';
+  }
+
+  // Filter navigation items by role
+  const navItems = allNavItems.filter(item => {
+    if (item.roles) {
+      return item.roles.includes(role);
+    }
+    return true;
+  });
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    navigate('/');
+  };
+
   return (
     <div className="min-h-screen bg-slate-100 text-campus-ink">
       <aside className="fixed inset-y-0 left-0 hidden w-72 border-r border-slate-200 bg-white lg:block">
@@ -54,10 +79,13 @@ export default function AppShell() {
           ))}
         </nav>
         <div className="absolute bottom-0 left-0 right-0 border-t border-slate-200 p-4">
-          <NavLink to="/" className="flex items-center gap-3 rounded-md px-3 py-3 text-sm font-medium text-slate-600 hover:bg-slate-100">
+          <button
+            onClick={handleLogout}
+            className="flex w-full items-center gap-3 rounded-md px-3 py-3 text-sm font-medium text-slate-600 hover:bg-slate-100 text-left"
+          >
             <LogOut className="h-4 w-4" />
-            Back to login
-          </NavLink>
+            Logout
+          </button>
         </div>
       </aside>
 
@@ -72,9 +100,12 @@ export default function AppShell() {
               <p className="font-bold">Lost & Found</p>
             </div>
           </div>
-          <NavLink to="/" className="rounded-md border border-slate-300 p-2 text-slate-600">
+          <button
+            onClick={handleLogout}
+            className="rounded-md border border-slate-300 p-2 text-slate-600 hover:bg-slate-100"
+          >
             <LogOut className="h-4 w-4" />
-          </NavLink>
+          </button>
         </div>
         <nav className="mt-3 flex gap-2 overflow-x-auto pb-1">
           {navItems.map((item) => (
@@ -100,3 +131,4 @@ export default function AppShell() {
     </div>
   );
 }
+

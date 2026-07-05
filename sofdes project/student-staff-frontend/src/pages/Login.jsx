@@ -1,7 +1,52 @@
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ArrowRight, BadgeCheck, Building2, MapPin, ShieldCheck } from 'lucide-react';
 
 export default function Login() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    if (!email || !password) {
+      setError('Please fill in all fields.');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      const response = await fetch('http://localhost:5000/api/v1/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || 'Invalid email or password.');
+      }
+
+      // Save token and user details in localStorage
+      localStorage.setItem('token', result.data.token);
+      localStorage.setItem('user', JSON.stringify(result.data.user));
+
+      // Navigate to dashboard after successful login
+      navigate('/dashboard');
+    } catch (err) {
+      setError(err.message || 'Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <main className="min-h-screen bg-[#eef5f3] px-6 py-8 text-campus-ink">
       <section className="mx-auto grid min-h-[calc(100vh-4rem)] max-w-6xl items-center gap-8 lg:grid-cols-[1.1fr_0.9fr]">
@@ -34,20 +79,45 @@ export default function Login() {
           <div className="mb-7">
             <h2 className="mt-2 text-2xl font-bold">Sign in</h2>
           </div>
-          <div className="space-y-4">
+          <form onSubmit={handleLogin} className="space-y-4">
+            {error && (
+              <div className="rounded bg-red-50 p-3 text-sm text-red-600 border border-red-200">
+                {error}
+              </div>
+            )}
             <label className="block">
               <span className="text-sm font-medium text-slate-700">University email</span>
-              <input name="email" className="mt-2 w-full rounded-md border border-slate-300 px-4 py-3 outline-none focus:border-campus-green focus:ring-2 focus:ring-campus-green/20" placeholder="name@university.edu" />
+              <input
+                type="email"
+                name="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="mt-2 w-full rounded-md border border-slate-300 px-4 py-3 outline-none focus:border-campus-green focus:ring-2 focus:ring-campus-green/20"
+                placeholder="name@university.edu"
+                required
+              />
             </label>
             <label className="block">
               <span className="text-sm font-medium text-slate-700">Password</span>
-              <input name="password" className="mt-2 w-full rounded-md border border-slate-300 px-4 py-3 outline-none focus:border-campus-green focus:ring-2 focus:ring-campus-green/20" type="password" placeholder="Enter password" />
+              <input
+                type="password"
+                name="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="mt-2 w-full rounded-md border border-slate-300 px-4 py-3 outline-none focus:border-campus-green focus:ring-2 focus:ring-campus-green/20"
+                placeholder="Enter password"
+                required
+              />
             </label>
-            <Link to="/dashboard" className="flex w-full items-center justify-center gap-2 rounded-md bg-campus-green px-4 py-3 font-semibold text-white hover:bg-teal-800">
-              Continue
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex w-full items-center justify-center gap-2 rounded-md bg-campus-green px-4 py-3 font-semibold text-white hover:bg-teal-800 disabled:opacity-50"
+            >
+              {loading ? 'Signing in...' : 'Continue'}
               <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
+            </button>
+          </form>
 
           <div className="mt-7 grid gap-3">
             {[
@@ -66,3 +136,4 @@ export default function Login() {
     </main>
   );
 }
+
