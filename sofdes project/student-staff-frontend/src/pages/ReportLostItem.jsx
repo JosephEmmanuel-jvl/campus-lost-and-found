@@ -123,7 +123,6 @@ export default function ReportLostItem() {
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Student report"
         title="Report Lost Item"
         description="Capture the item, last known location, and identifying details for campus staff review."
       />
