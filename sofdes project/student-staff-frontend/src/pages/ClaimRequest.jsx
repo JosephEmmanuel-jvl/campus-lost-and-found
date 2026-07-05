@@ -60,14 +60,16 @@ export default function ClaimRequest() {
       const fetchUnclaimedList = async () => {
         setLoadingList(true);
         try {
-          const response = await fetch('http://127.0.0.1:5000/api/v1/found-items?status=Unclaimed', {
+          const response = await fetch('http://127.0.0.1:5000/api/v1/found-items', {
             headers: {
               'Authorization': `Bearer ${token}`,
             },
           });
           const json = await response.json();
           if (response.ok) {
-            setUnclaimedItems(json.data.reports || []);
+            const list = json.data.reports || [];
+            // Allow claiming both Unclaimed and Matched items (only fully Claimed items are excluded)
+            setUnclaimedItems(list.filter(item => item.status !== 'Claimed'));
           }
         } catch (err) {
           console.error('Error fetching unclaimed found items', err);
