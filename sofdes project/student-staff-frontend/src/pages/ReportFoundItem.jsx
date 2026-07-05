@@ -45,7 +45,7 @@ export default function ReportFoundItem() {
       // Append condition and holding office to the description to save detailed information
       const detailedDescription = `[Condition: ${formData.condition}] [Holding Office: ${formData.holding_office}] ${formData.description}`;
 
-      const response = await fetch('http://localhost:5000/api/v1/found-items', {
+      const response = await fetch('http://127.0.0.1:5000/api/v1/found-items', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -25,7 +25,7 @@ export default function SearchPage() {
       if (location && location !== 'All locations') params.append('location', location);
 
       try {
-        const response = await fetch(`http://localhost:5000/api/v1/search?${params.toString()}`, {
+        const response = await fetch(`http://127.0.0.1:5000/api/v1/search?${params.toString()}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',

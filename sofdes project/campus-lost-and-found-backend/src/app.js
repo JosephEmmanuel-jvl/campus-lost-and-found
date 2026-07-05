@@ -23,7 +23,7 @@ const apiRoutes = require('./routes');
 const app = express();
 
 // --- Global middleware ----------------------------------------------------
-app.use(cors({ origin: env.corsOrigin, credentials: true }));
+app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

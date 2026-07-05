@@ -35,15 +35,15 @@ export default function StudentDashboard() {
 
       try {
         // 1. Fetch Lost Reports
-        const lostResponse = await fetch('http://localhost:5000/api/v1/lost-items', { headers });
+        const lostResponse = await fetch('http://127.0.0.1:5000/api/v1/lost-items', { headers });
         const lostJson = await lostResponse.json();
         
         // 2. Fetch Found Reports
-        const foundResponse = await fetch('http://localhost:5000/api/v1/found-items', { headers });
+        const foundResponse = await fetch('http://127.0.0.1:5000/api/v1/found-items', { headers });
         const foundJson = await foundResponse.json();
 
         // 3. Fetch Notifications
-        const notifResponse = await fetch('http://localhost:5000/api/v1/notifications', { headers });
+        const notifResponse = await fetch('http://127.0.0.1:5000/api/v1/notifications', { headers });
         const notifJson = await notifResponse.json();
 
         if (lostResponse.ok && foundResponse.ok && notifResponse.ok) {

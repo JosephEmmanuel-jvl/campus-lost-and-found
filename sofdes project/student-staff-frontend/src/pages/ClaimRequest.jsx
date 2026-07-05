@@ -31,7 +31,7 @@ export default function ClaimRequest() {
         setError('');
         const token = localStorage.getItem('token');
         try {
-          const response = await fetch(`http://localhost:5000/api/v1/found-items/${foundId}`, {
+          const response = await fetch(`http://127.0.0.1:5000/api/v1/found-items/${foundId}`, {
             headers: {
               'Authorization': `Bearer ${token}`,
             },
@@ -65,7 +65,7 @@ export default function ClaimRequest() {
 
     const token = localStorage.getItem('token');
     try {
-      const response = await fetch('http://localhost:5000/api/v1/claims', {
+      const response = await fetch('http://127.0.0.1:5000/api/v1/claims', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

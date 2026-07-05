@@ -55,7 +55,7 @@ export default function ReportLostItem() {
     const last_known_location = `${formData.building}${formData.area ? ` - ${formData.area}` : ''}`;
 
     try {
-      const response = await fetch('http://localhost:5000/api/v1/lost-items', {
+      const response = await fetch('http://127.0.0.1:5000/api/v1/lost-items', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

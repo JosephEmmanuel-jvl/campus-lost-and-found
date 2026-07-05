@@ -18,7 +18,7 @@ export default function Notifications() {
     };
 
     try {
-      const response = await fetch('http://localhost:5000/api/v1/notifications', { headers });
+      const response = await fetch('http://127.0.0.1:5000/api/v1/notifications', { headers });
       const json = await response.json();
 
       if (response.ok) {
@@ -64,7 +64,7 @@ export default function Notifications() {
     };
 
     try {
-      const response = await fetch(`http://localhost:5000/api/v1/notifications/${rawId}`, {
+      const response = await fetch(`http://127.0.0.1:5000/api/v1/notifications/${rawId}`, {
         method: 'PATCH',
         headers,
       });

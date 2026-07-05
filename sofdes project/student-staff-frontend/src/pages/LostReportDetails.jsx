@@ -31,7 +31,7 @@ export default function LostReportDetails() {
 
       try {
         // 1. Fetch Lost Report Details
-        const detailsResponse = await fetch(`http://localhost:5000/api/v1/lost-items/${id}`, { headers });
+        const detailsResponse = await fetch(`http://127.0.0.1:5000/api/v1/lost-items/${id}`, { headers });
         const detailsJson = await detailsResponse.json();
 
         if (!detailsResponse.ok) {
@@ -58,7 +58,7 @@ export default function LostReportDetails() {
         setReport(mappedReport);
 
         // 2. Fetch Scored Matches from the Suggestive Matching Engine
-        const matchesResponse = await fetch(`http://localhost:5000/api/v1/matches/${id}`, { headers });
+        const matchesResponse = await fetch(`http://127.0.0.1:5000/api/v1/matches/${id}`, { headers });
         const matchesJson = await matchesResponse.json();
 
         if (matchesResponse.ok) {
@@ -97,7 +97,7 @@ export default function LostReportDetails() {
     };
 
     try {
-      const response = await fetch(`http://localhost:5000/api/v1/matches/${report.rawId}`, {
+      const response = await fetch(`http://127.0.0.1:5000/api/v1/matches/${report.rawId}`, {
         method: 'PATCH',
         headers,
         body: JSON.stringify({ found_report_id: foundReportId }),

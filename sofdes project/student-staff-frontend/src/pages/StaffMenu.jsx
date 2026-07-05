@@ -36,7 +36,7 @@ export default function StaffMenu() {
 
     try {
       // 1. Fetch dashboard statistics
-      const statsRes = await fetch('http://localhost:5000/api/v1/admin/dashboard', {
+      const statsRes = await fetch('http://127.0.0.1:5000/api/v1/admin/dashboard', {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       const statsJson = await statsRes.json();
@@ -45,7 +45,7 @@ export default function StaffMenu() {
       }
 
       // 2. Fetch all reports for the intake list
-      const reportsRes = await fetch('http://localhost:5000/api/v1/admin/reports', {
+      const reportsRes = await fetch('http://127.0.0.1:5000/api/v1/admin/reports', {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       const reportsJson = await reportsRes.json();
@@ -54,7 +54,7 @@ export default function StaffMenu() {
       }
 
       // 3. Fetch all claim requests (pending or all)
-      const claimsRes = await fetch('http://localhost:5000/api/v1/admin/claims', {
+      const claimsRes = await fetch('http://127.0.0.1:5000/api/v1/admin/claims', {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       const claimsJson = await claimsRes.json();
@@ -78,7 +78,7 @@ export default function StaffMenu() {
     const token = localStorage.getItem('token');
 
     try {
-      const response = await fetch(`http://localhost:5000/api/v1/claims/${claimId}/approve`, {
+      const response = await fetch(`http://127.0.0.1:5000/api/v1/claims/${claimId}/approve`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -111,7 +111,7 @@ export default function StaffMenu() {
     const token = localStorage.getItem('token');
 
     try {
-      const response = await fetch(`http://localhost:5000/api/v1/claims/${rejectId}/reject`, {
+      const response = await fetch(`http://127.0.0.1:5000/api/v1/claims/${rejectId}/reject`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
