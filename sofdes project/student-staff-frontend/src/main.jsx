@@ -49,7 +49,7 @@ function RoleRoute({ allowedRoles }) {
 
 function DashboardRouter() {
   const role = getUserRole();
-  if (role === 'Staff' || role === 'Admin') {
+  if (role === 'Admin') {
     return <StaffMenu />;
   }
   return <StudentDashboard />;
