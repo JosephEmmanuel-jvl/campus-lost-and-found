@@ -221,44 +221,45 @@ export default function ReportFoundItem() {
             </FormField>
 
             <div className="grid gap-4 md:grid-cols-2">
-              <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-5">
-                <input
-                  type="file"
-                  id="photo-upload"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                  className="hidden"
-                />
-                
-                {photoFile ? (
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      {photoPreview ? (
-                        <img src={photoPreview} alt="Preview" className="h-10 w-10 rounded object-cover border border-slate-200" />
-                      ) : (
-                        <Camera className="h-6 w-6 text-campus-green" />
-                      )}
-                      <div>
-                        <p className="font-semibold text-campus-ink text-sm truncate max-w-[150px]">{photoFile.name}</p>
-                        <p className="text-xs text-slate-500">{(photoFile.size / 1024).toFixed(1)} KB</p>
+              <FormField label="Photo">
+                <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-5">
+                  <input
+                    type="file"
+                    id="photo-upload"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                  
+                  {photoFile ? (
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        {photoPreview ? (
+                          <img src={photoPreview} alt="Preview" className="h-10 w-10 rounded object-cover border border-slate-200" />
+                        ) : (
+                          <Camera className="h-6 w-6 text-campus-green" />
+                        )}
+                        <div>
+                          <p className="font-semibold text-campus-ink text-sm truncate max-w-[150px]">{photoFile.name}</p>
+                          <p className="text-xs text-slate-500">{(photoFile.size / 1024).toFixed(1)} KB</p>
+                        </div>
                       </div>
+                      <button 
+                        type="button" 
+                        onClick={handleRemovePhoto}
+                        className="text-xs font-semibold text-red-600 hover:text-red-800"
+                      >
+                        Remove
+                      </button>
                     </div>
-                    <button 
-                      type="button" 
-                      onClick={handleRemovePhoto}
-                      className="text-xs font-semibold text-red-600 hover:text-red-800"
-                    >
-                      Remove
+                  ) : (
+                    <button type="button" onClick={() => document.getElementById('photo-upload').click()} className="flex items-center gap-2 text-campus-green hover:text-campus-ink">
+                      <Camera className="h-6 w-6 animate-pulse" />
+                      Attach photo
                     </button>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center text-center cursor-pointer py-2" onClick={() => document.getElementById('photo-upload').click()}>
-                    <Camera className="h-6 w-6 text-campus-green animate-pulse" />
-                    <p className="mt-2 text-sm font-semibold text-campus-ink">Attach photo</p>
-                    <p className="text-xs text-slate-500 mt-1">Click to select an image</p>
-                  </div>
-                )}
-              </div>
+                  )}
+                </div>
+              </FormField>
               <div className="rounded-lg border border-slate-200 bg-campus-mist p-5">
                 <PackageCheck className="h-6 w-6 text-campus-green" />
                 <p className="mt-3 font-semibold text-campus-ink">Storage label</p>

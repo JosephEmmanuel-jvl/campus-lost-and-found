@@ -1,4 +1,5 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import {
   Bell,
   ClipboardCheck,
@@ -24,6 +25,7 @@ const allNavItems = [
 
 export default function AppShell() {
   const navigate = useNavigate();
+  const [unreadCount, setUnreadCount] = useState(0);
 
   // Get current user role
   let role = '';
@@ -33,6 +35,30 @@ export default function AppShell() {
   } catch {
     role = '';
   }
+
+  // Fetch unread notifications count
+  useEffect(() => {
+    const fetchUnread = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+      try {
+        const res = await fetch('http://127.0.0.1:5000/api/v1/notifications', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (res.ok && data.data && Array.isArray(data.data.notifications)) {
+          const count = data.data.notifications.filter((n) => !n.is_read).length;
+          setUnreadCount(count);
+        }
+      } catch (e) {
+        console.error('Failed to fetch notifications', e);
+      }
+    };
+    fetchUnread();
+    const interval = setInterval(fetchUnread, 60000); // refresh every minute
+    return () => clearInterval(interval);
+  }, []);
+
 
   // Filter navigation items by role
   const navItems = allNavItems.filter(item => {
@@ -118,8 +144,15 @@ export default function AppShell() {
                 }`
               }
             >
-              <item.icon className="h-4 w-4" />
-              {item.label}
+              <div className="relative flex items-center">
+                <item.icon className="h-4 w-4" />
+                {item.label === 'Notifications' && unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-2 inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-red-600 text-xs font-medium text-white">
+                    {unreadCount}
+                  </span>
+                )}
+                <span className="ml-1">{item.label}</span>
+              </div>
             </NavLink>
           ))}
         </nav>
