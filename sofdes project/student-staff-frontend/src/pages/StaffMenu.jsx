@@ -15,6 +15,7 @@ export default function StaffMenu() {
   });
 
   const [foundItems, setFoundItems] = useState([]);
+  const [lostReports, setLostReports] = useState([]);
   const [claims, setClaims] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -60,6 +61,7 @@ export default function StaffMenu() {
       const reportsJson = await reportsRes.json();
       if (reportsRes.ok) {
         setFoundItems(reportsJson.data.found_reports || []);
+        setLostReports(reportsJson.data.lost_reports || []);
       }
 
       // 3. Fetch all claim requests (pending or all)
@@ -244,35 +246,72 @@ export default function StaffMenu() {
               </div>
             </SectionCard>
 
-            <SectionCard title="Found Item Inventory Intake" subtitle="Showing recently logged items awaiting matchup">
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[500px] text-left text-sm">
-                  <thead>
-                    <tr className="border-b border-slate-200 text-xs uppercase tracking-[0.12em] text-slate-500">
-                      <th className="pb-3 font-semibold">Item</th>
-                      <th className="pb-3 font-semibold">Location</th>
-                      <th className="pb-3 font-semibold">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {foundItems.slice(0, 8).map((item) => (
-                      <tr key={item.found_report_id || item.id}>
-                        <td className="py-4">
-                          <p className="font-semibold text-campus-ink">{item.item_name}</p>
-                          <p className="text-xs text-slate-500">
-                            FND-{String(item.found_report_id || item.id).padStart(4, '0')} - {item.category}
-                          </p>
-                        </td>
-                        <td className="py-4 text-slate-600">{item.location_found}</td>
-                        <td className="py-4">
-                          <StatusBadge value={item.status === 'Unclaimed' ? 'Available' : item.status} />
-                        </td>
+            <div className="space-y-6">
+              <SectionCard title="Found Item Inventory Intake" subtitle="Showing recently logged items awaiting matchup">
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[400px] text-left text-sm">
+                    <thead>
+                      <tr className="border-b border-slate-200 text-xs uppercase tracking-[0.12em] text-slate-500">
+                        <th className="pb-3 font-semibold">Item</th>
+                        <th className="pb-3 font-semibold">Location</th>
+                        <th className="pb-3 font-semibold">Status</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </SectionCard>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {foundItems.slice(0, 5).map((item) => (
+                        <tr key={item.found_report_id || item.id}>
+                          <td className="py-4">
+                            <p className="font-semibold text-campus-ink">{item.item_name}</p>
+                            <p className="text-xs text-slate-500">
+                              FND-{String(item.found_report_id || item.id).padStart(4, '0')} - {item.category}
+                            </p>
+                          </td>
+                          <td className="py-4 text-slate-600">{item.location_found}</td>
+                          <td className="py-4">
+                            <StatusBadge value={item.status === 'Unclaimed' ? 'Available' : item.status} />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </SectionCard>
+
+              <SectionCard title="Active Lost Item Reports" subtitle="Student reports awaiting matching & confirmation">
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[400px] text-left text-sm">
+                    <thead>
+                      <tr className="border-b border-slate-200 text-xs uppercase tracking-[0.12em] text-slate-500">
+                        <th className="pb-3 font-semibold">Item</th>
+                        <th className="pb-3 font-semibold">Location</th>
+                        <th className="pb-3 font-semibold">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {lostReports.slice(0, 5).map((report) => (
+                        <tr key={report.lost_report_id || report.id}>
+                          <td className="py-4">
+                            <p className="font-semibold text-campus-ink">{report.item_name}</p>
+                            <p className="text-xs text-slate-500">
+                              LST-{String(report.lost_report_id || report.id).padStart(4, '0')} - {report.category}
+                            </p>
+                          </td>
+                          <td className="py-4 text-slate-600">{report.last_known_location}</td>
+                          <td className="py-4">
+                            <Link
+                              to={`/lost-reports/${report.lost_report_id || report.id}`}
+                              className="inline-flex items-center gap-1 rounded bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-campus-mist hover:text-campus-green transition-colors"
+                            >
+                              Match
+                            </Link>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </SectionCard>
+            </div>
           </div>
         </>
       )}
