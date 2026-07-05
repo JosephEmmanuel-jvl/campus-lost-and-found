@@ -206,14 +206,14 @@ export default function StaffMenu() {
                   <p className="text-sm text-slate-500 py-4 text-center">No pending claim requests.</p>
                 ) : (
                   claims.filter(c => c.status === 'Pending').map((claim) => (
-                    <div key={claim.claim_request_id} className="rounded-lg border border-slate-200 p-4 space-y-3 bg-white">
+                    <div key={claim.claim_id} className="rounded-lg border border-slate-200 p-4 space-y-3 bg-white">
                       <div className="flex items-start justify-between">
                         <div>
                           <p className="font-bold text-campus-ink">
                             Claim for: {claim.found_item_name || `Found Item #${claim.found_report_id}`}
                           </p>
                           <p className="text-xs text-slate-500">
-                            Claimant: {claim.claimant_name || 'Student'} ({claim.claimant_university_id})
+                            Claimant: {claim.claimant_first_name ? `${claim.claimant_first_name} ${claim.claimant_last_name}` : 'Student'} ({claim.claimant_university_id})
                           </p>
                         </div>
                         <StatusBadge value={claim.status} />
@@ -226,14 +226,14 @@ export default function StaffMenu() {
 
                       <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
                         <button
-                          onClick={() => handleApprove(claim.claim_request_id)}
+                          onClick={() => handleApprove(claim.claim_id)}
                           disabled={processingId !== null}
                           className="inline-flex items-center gap-1 rounded bg-campus-green px-3 py-1.5 text-xs font-semibold text-white hover:bg-teal-800 disabled:opacity-50"
                         >
                           <Check className="h-3 w-3" /> Approve
                         </button>
                         <button
-                          onClick={() => setRejectId(claim.claim_request_id)}
+                          onClick={() => setRejectId(claim.claim_id)}
                           disabled={processingId !== null}
                           className="inline-flex items-center gap-1 rounded bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700 disabled:opacity-50"
                         >
