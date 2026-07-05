@@ -76,8 +76,8 @@ function Root() {
             <Route path="/claim-request" element={<Navigate to="/claim" replace />} />
             <Route path="/profile" element={<Profile />} />
 
-            {/* Staff / Admin Only Route */}
-            <Route element={<RoleRoute allowedRoles={['Staff', 'Admin']} />}>
+            {/* Staff Only Route */}
+            <Route element={<RoleRoute allowedRoles={['Staff']} />}>
               <Route path="/staff" element={<StaffMenu />} />
             </Route>
           </Route>
