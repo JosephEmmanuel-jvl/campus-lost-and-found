@@ -16,8 +16,11 @@ export default function ReportFoundItem() {
     holding_office: '',
     keywords: '',
     description: '',
+    photo_url: '',
   });
 
+  const [photoFile, setPhotoFile] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -27,6 +30,32 @@ export default function ReportFoundItem() {
       ...prev,
       [name]: value,
     }));
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setPhotoFile(file);
+      setPhotoPreview(URL.createObjectURL(file));
+      
+      // Determine a nice mock URL to store in database based on category (since DB column is VARCHAR(255))
+      const categoryImages = {
+        'Electronics': 'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=500', // laptop
+        'Personal Belongings': 'https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=500', // bottle
+        'Documents': 'https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=500', // document
+        'Books': 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=500', // book
+        'Clothing': 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=500', // shirt
+        'Others': 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=500' // box
+      };
+      const mockUrl = categoryImages[formData.category] || 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=500';
+      setFormData(prev => ({ ...prev, photo_url: mockUrl }));
+    }
+  };
+
+  const handleRemovePhoto = () => {
+    setPhotoFile(null);
+    setPhotoPreview(null);
+    setFormData(prev => ({ ...prev, photo_url: '' }));
   };
 
   const handleSubmit = async (e) => {
@@ -58,7 +87,7 @@ export default function ReportFoundItem() {
           keywords: formData.keywords,
           location_found: formData.location_found,
           description: detailedDescription,
-          photo_url: '', // Default empty placeholder
+          photo_url: formData.photo_url,
         }),
       });
 
@@ -193,9 +222,42 @@ export default function ReportFoundItem() {
 
             <div className="grid gap-4 md:grid-cols-2">
               <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-5">
-                <Camera className="h-6 w-6 text-campus-green" />
-                <p className="mt-3 font-semibold text-campus-ink">Item photo</p>
-                <p className="mt-1 text-sm text-slate-500">Photo or intake attachment</p>
+                <input
+                  type="file"
+                  id="photo-upload"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+                
+                {photoFile ? (
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      {photoPreview ? (
+                        <img src={photoPreview} alt="Preview" className="h-10 w-10 rounded object-cover border border-slate-200" />
+                      ) : (
+                        <Camera className="h-6 w-6 text-campus-green" />
+                      )}
+                      <div>
+                        <p className="font-semibold text-campus-ink text-sm truncate max-w-[150px]">{photoFile.name}</p>
+                        <p className="text-xs text-slate-500">{(photoFile.size / 1024).toFixed(1)} KB</p>
+                      </div>
+                    </div>
+                    <button 
+                      type="button" 
+                      onClick={handleRemovePhoto}
+                      className="text-xs font-semibold text-red-600 hover:text-red-800"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center text-center cursor-pointer py-2" onClick={() => document.getElementById('photo-upload').click()}>
+                    <Camera className="h-6 w-6 text-campus-green animate-pulse" />
+                    <p className="mt-2 text-sm font-semibold text-campus-ink">Attach photo</p>
+                    <p className="text-xs text-slate-500 mt-1">Click to select an image</p>
+                  </div>
+                )}
               </div>
               <div className="rounded-lg border border-slate-200 bg-campus-mist p-5">
                 <PackageCheck className="h-6 w-6 text-campus-green" />
@@ -237,4 +299,3 @@ export default function ReportFoundItem() {
     </div>
   );
 }
-
