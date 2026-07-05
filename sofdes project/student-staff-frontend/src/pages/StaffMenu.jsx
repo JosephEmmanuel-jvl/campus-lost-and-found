@@ -24,6 +24,15 @@ export default function StaffMenu() {
   const [rejectId, setRejectId] = useState(null);
   const [remarks, setRemarks] = useState('');
 
+  // Get current user role
+  let role = '';
+  try {
+    const user = JSON.parse(localStorage.getItem('user'));
+    role = user?.role || '';
+  } catch {
+    role = '';
+  }
+
   const fetchData = async () => {
     setLoading(true);
     setError('');
@@ -139,7 +148,7 @@ export default function StaffMenu() {
     <div className="space-y-6">
       <PageHeader
         eyebrow="Campus Safety"
-        title="Admin Control Center"
+        title={role === 'Admin' ? 'Admin Control Center' : 'Staff Control Center'}
         description="Verify ownership claims, view system stats, and confirm suggestive matches."
         action={<PrimaryLink to="/report-found" icon={PackageOpen}>Record found item</PrimaryLink>}
       />
