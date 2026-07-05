@@ -36,11 +36,11 @@ TRUNCATE TABLE user;
 -- USERS (1 Admin, 1 Staff, 3 Students) - password for all: Password123!
 -- ---------------------------------------------------------------------------
 INSERT INTO user (university_id, first_name, last_name, email, password_hash, contact_number, role) VALUES
-('2021-00001', 'Alice',   'Santos',    'alice.santos@university.edu',   '$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', '09171234567', 'Admin'),
-('2021-00002', 'Benjamin','Cruz',      'benjamin.cruz@university.edu',  '$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', '09181234567', 'Staff'),
-('2022-10001', 'Carla',   'Reyes',     'carla.reyes@university.edu',    '$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', NULL,          'Student'),
-('2022-10002', 'Daniel',  'Mendoza',   'daniel.mendoza@university.edu', '$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', '09201234567', 'Student'),
-('2022-10003', 'Erika',   'Villanueva','erika.villanueva@university.edu','$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', NULL,          'Student');
+('2021-00001', 'Alice',   'Santos',    'alice.santos@university.edu',   '$2b$10$Nds7rdJdMqcercnP3jQxsOC3pCUs5YsIlSG1UIGaFc0t.4lIF89cm', '09171234567', 'Admin'),
+('2021-00002', 'Benjamin','Cruz',      'benjamin.cruz@university.edu',  '$2b$10$Nds7rdJdMqcercnP3jQxsOC3pCUs5YsIlSG1UIGaFc0t.4lIF89cm', '09181234567', 'Staff'),
+('2022-10001', 'Carla',   'Reyes',     'carla.reyes@university.edu',    '$2b$10$Nds7rdJdMqcercnP3jQxsOC3pCUs5YsIlSG1UIGaFc0t.4lIF89cm', NULL,          'Student'),
+('2022-10002', 'Daniel',  'Mendoza',   'daniel.mendoza@university.edu', '$2b$10$Nds7rdJdMqcercnP3jQxsOC3pCUs5YsIlSG1UIGaFc0t.4lIF89cm', '09201234567', 'Student'),
+('2022-10003', 'Erika',   'Villanueva','erika.villanueva@university.edu','$2b$10$Nds7rdJdMqcercnP3jQxsOC3pCUs5YsIlSG1UIGaFc0t.4lIF89cm', NULL,          'Student');
 
 -- ---------------------------------------------------------------------------
 -- LOST ITEM REPORTS
