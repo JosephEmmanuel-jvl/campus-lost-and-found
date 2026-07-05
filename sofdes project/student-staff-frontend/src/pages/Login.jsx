@@ -32,7 +32,6 @@ export default function Login() {
 
         <div className="rounded-lg border border-white bg-white p-7 shadow-soft">
           <div className="mb-7">
-            <p className="text-sm font-semibold uppercase tracking-[0.16em] text-campus-green">Student access</p>
             <h2 className="mt-2 text-2xl font-bold">Sign in</h2>
           </div>
           <div className="space-y-4">
