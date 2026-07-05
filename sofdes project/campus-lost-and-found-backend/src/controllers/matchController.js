@@ -41,45 +41,18 @@ const getSuggestedMatches = asyncHandler(async (req, res) => {
   const lostReport = await lostItemModel.findById(req.params.reportId);
   if (!lostReport) throw new ApiError(404, 'Lost report not found.');
 
-  // Candidate pool: found reports in the same category that are not yet claimed.
-  const candidates = await foundItemModel.findAll({ category: lostReport.category });
+  // Candidate pool: all found reports that are currently unclaimed/available
+  const candidates = await foundItemModel.findAll({ status: 'Unclaimed' });
 
-  const scored = candidates
-    .filter((f) => f.status !== 'Claimed')
-    .map((f) => {
-      let score = 0;
-      // Category already matches (filtered) -> base weight.
-      score += 3;
-      // Keyword overlap.
-      score += keywordOverlap(lostReport.keywords, f.keywords) * 2;
-      // Item name similarity (substring, case-insensitive).
-      if (
-        lostReport.item_name &&
-        f.item_name &&
-        (f.item_name.toLowerCase().includes(lostReport.item_name.toLowerCase()) ||
-          lostReport.item_name.toLowerCase().includes(f.item_name.toLowerCase()))
-      ) {
-        score += 2;
-      }
-      // Location hint.
-      if (
-        lostReport.last_known_location &&
-        f.location_found &&
-        f.location_found.toLowerCase().includes(lostReport.last_known_location.toLowerCase().split(',')[0])
-      ) {
-        score += 1;
-      }
-      // Date proximity: found on/after lost date is expected.
-      if (f.date_found && lostReport.date_lost && f.date_found >= lostReport.date_lost) {
-        score += 1;
-      }
-      return { ...f, match_score: score };
-    })
-    .sort((a, b) => b.match_score - a.match_score);
+  // Map candidates for display (no matching engine score)
+  const mapped = candidates.map((f) => ({
+    ...f,
+    match_score: null,
+  }));
 
   return success(res, {
-    message: 'Suggested matches retrieved.',
-    data: { lost_report_id: lostReport.lost_report_id, suggestions: scored },
+    message: 'Available found items retrieved for manual matching.',
+    data: { lost_report_id: lostReport.lost_report_id, suggestions: mapped },
   });
 });
 

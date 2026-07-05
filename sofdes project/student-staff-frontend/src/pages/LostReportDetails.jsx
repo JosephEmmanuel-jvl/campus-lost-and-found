@@ -189,7 +189,7 @@ export default function LostReportDetails() {
             </dl>
           </SectionCard>
 
-          <SectionCard title="Suggested matches" subtitle="Scored found item candidates linked by matching engine">
+          <SectionCard title="Unclaimed Found Items Inventory" subtitle="Select a found item below to manually confirm a match">
             {matches.length ? (
               <div className="grid gap-4 md:grid-cols-2">
                 {matches.map((item) => (
@@ -203,7 +203,6 @@ export default function LostReportDetails() {
                         </div>
                         <div className="text-right">
                           <StatusBadge value={item.status} />
-                          <p className="text-xs text-slate-400 mt-1 font-semibold">Score: {item.score}</p>
                         </div>
                       </div>
                       <p className="mt-3 text-sm leading-6 text-slate-600">{item.description}</p>
@@ -224,7 +223,7 @@ export default function LostReportDetails() {
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-slate-500">No possible matches are currently found for this report.</p>
+              <p className="text-sm text-slate-500">No unclaimed found items are currently listed in the inventory.</p>
             )}
           </SectionCard>
         </div>
