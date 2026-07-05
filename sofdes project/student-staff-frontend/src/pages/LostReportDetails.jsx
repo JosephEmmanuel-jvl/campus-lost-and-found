@@ -10,6 +10,15 @@ export default function LostReportDetails() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  // Load user role
+  let role = '';
+  try {
+    const user = JSON.parse(localStorage.getItem('user'));
+    role = user?.role || '';
+  } catch {
+    role = '';
+  }
+
   useEffect(() => {
     const fetchDetails = async () => {
       setLoading(true);
@@ -62,7 +71,7 @@ export default function LostReportDetails() {
             location: s.location_found,
             foundDate: s.date_found,
             status: s.status === 'Unclaimed' ? 'Available' : s.status,
-            thumbnail: s.category.toLowerCase() === 'electronics' ? 'laptop' : 'bottle',
+            thumbnail: s.category.toLowerCase() === 'electronics' ? 'laptop' : null,
             description: s.description,
             score: s.match_score
           }));
@@ -77,6 +86,34 @@ export default function LostReportDetails() {
 
     fetchDetails();
   }, [id]);
+
+  const handleConfirmMatch = async (foundReportId) => {
+    if (!window.confirm('Are you sure you want to confirm this match? This will lock both reports as Matched.')) return;
+
+    const token = localStorage.getItem('token');
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    };
+
+    try {
+      const response = await fetch(`http://localhost:5000/api/v1/matches/${report.rawId}`, {
+        method: 'PATCH',
+        headers,
+        body: JSON.stringify({ found_report_id: foundReportId }),
+      });
+
+      const json = await response.json();
+      if (response.ok) {
+        alert('Match confirmed successfully!');
+        window.location.reload();
+      } else {
+        throw new Error(json.message || 'Failed to confirm match.');
+      }
+    } catch (err) {
+      alert(err.message);
+    }
+  };
 
   if (loading) {
     return (
@@ -171,8 +208,17 @@ export default function LostReportDetails() {
                       </div>
                       <p className="mt-3 text-sm leading-6 text-slate-600">{item.description}</p>
                     </div>
-                    <div className="mt-4 pt-2 border-t border-slate-100">
-                      <PrimaryLink to="/claim" icon={ClipboardCheck}>Start claim</PrimaryLink>
+                    <div className="mt-4 pt-2 border-t border-slate-100 flex gap-2">
+                      {role === 'Admin' && report.status === 'Pending' && item.status === 'Available' ? (
+                        <button
+                          onClick={() => handleConfirmMatch(item.rawId)}
+                          className="w-full inline-flex items-center justify-center gap-2 rounded bg-campus-green py-2 text-sm font-semibold text-white hover:bg-teal-800"
+                        >
+                          Confirm Match
+                        </button>
+                      ) : (
+                        <PrimaryLink to={`/claim?found_id=${item.rawId}`} icon={ClipboardCheck}>Start claim</PrimaryLink>
+                      )}
                     </div>
                   </article>
                 ))}
@@ -196,7 +242,9 @@ export default function LostReportDetails() {
 
           <SectionCard title="Next action">
             <div className="space-y-3">
-              <PrimaryLink to="/claim">Create claim request</PrimaryLink>
+              {report.status !== 'Claimed' && (
+                <PrimaryLink to={`/claim`}>Create claim request</PrimaryLink>
+              )}
               <Link to="/notifications" className="block rounded-md border border-slate-300 px-4 py-2.5 text-center text-sm font-semibold text-slate-700 hover:bg-slate-50">
                 View notifications
               </Link>
