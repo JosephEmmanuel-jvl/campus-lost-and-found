@@ -138,10 +138,6 @@ export default function ClaimRequest() {
         </SectionCard>
 
         <div className="space-y-6">
-          <AlertStrip>
-            Staff will compare these details against private report notes and withheld item characteristics before releasing property.
-          </AlertStrip>
-
           <SectionCard title="Claimant information" subtitle="Details used by campus staff to verify ownership">
             <form onSubmit={handleSubmit} className="grid gap-5">
               {error && (
