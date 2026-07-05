@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, Upload } from 'lucide-react';
+import { ArrowRight, Camera, Upload, X } from 'lucide-react';
 import { campusLocations, categories } from '../data/mockData';
 import { AlertStrip, FormField, PageHeader, SectionCard, inputClasses, selectClasses, textareaClasses } from '../components/ui';
 
@@ -16,7 +16,11 @@ export default function ReportLostItem() {
     area: '',
     keywords: '',
     description: '',
+    photo_url: '',
   });
+
+  const [photoFile, setPhotoFile] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState(null);
 
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -37,6 +41,30 @@ export default function ReportLostItem() {
       ...prev,
       [name]: value,
     }));
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setPhotoFile(file);
+      setPhotoPreview(URL.createObjectURL(file));
+      const categoryImages = {
+        'Electronics': 'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=500',
+        'Personal Belongings': 'https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=500',
+        'Documents': 'https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=500',
+        'Books': 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=500',
+        'Clothing': 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=500',
+        'Others': 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=500',
+      };
+      const mockUrl = categoryImages[formData.category] || 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=500';
+      setFormData(prev => ({ ...prev, photo_url: mockUrl }));
+    }
+  };
+
+  const handleRemovePhoto = () => {
+    setPhotoFile(null);
+    setPhotoPreview(null);
+    setFormData(prev => ({ ...prev, photo_url: '' }));
   };
 
   const handleSubmit = async (e) => {
@@ -68,7 +96,7 @@ export default function ReportLostItem() {
           keywords: formData.keywords,
           last_known_location: last_known_location,
           description: formData.description,
-          photo_url: '', // Default placeholder for reference photo
+          photo_url: formData.photo_url,
         }),
       });
 
@@ -199,20 +227,52 @@ export default function ReportLostItem() {
             </FormField>
 
             <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-5">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-md bg-white text-campus-green">
-                    <Upload className="h-5 w-5" />
+              <input
+                type="file"
+                id="lost-photo-upload"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+              {photoFile ? (
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    {photoPreview && (
+                      <img src={photoPreview} alt="Preview" className="h-12 w-12 rounded-md object-cover border border-slate-200" />
+                    )}
+                    <div>
+                      <p className="font-semibold text-campus-ink text-sm truncate max-w-[200px]">{photoFile.name}</p>
+                      <p className="text-xs text-slate-500">{(photoFile.size / 1024).toFixed(1)} KB</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-semibold text-campus-ink">Reference photo</p>
-                    <p className="text-sm text-slate-500">Optional photo for staff review</p>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={handleRemovePhoto}
+                    className="flex items-center gap-1 text-xs font-semibold text-red-600 hover:text-red-800"
+                  >
+                    <X className="h-3.5 w-3.5" /> Remove
+                  </button>
                 </div>
-                <button type="button" className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700">
-                  Choose file
-                </button>
-              </div>
+              ) : (
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-md bg-white text-campus-green">
+                      <Upload className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-campus-ink">Reference photo</p>
+                      <p className="text-sm text-slate-500">Optional — helps staff identify the item</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => document.getElementById('lost-photo-upload').click()}
+                    className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                  >
+                    <Camera className="h-4 w-4 text-campus-green" /> Choose file
+                  </button>
+                </div>
+              )}
             </div>
 
             <div className="flex flex-col gap-3 border-t border-slate-200 pt-5 sm:flex-row sm:justify-end">
