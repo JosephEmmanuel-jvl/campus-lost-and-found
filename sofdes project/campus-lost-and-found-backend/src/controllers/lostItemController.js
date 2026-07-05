@@ -15,6 +15,7 @@ const { asyncHandler, ApiError } = require('../utils/asyncHandler');
 const { success } = require('../utils/apiResponse');
 const lostItemModel = require('../models/lostItemModel');
 const notificationModel = require('../models/notificationModel');
+const userModel = require('../models/userModel');
 
 const getAll = asyncHandler(async (req, res) => {
   const { status, category } = req.query;
@@ -42,14 +43,27 @@ const create = asyncHandler(async (req, res) => {
     date_lost,
   });
 
-  // System-generated confirmation notification for the reporter.
-  await notificationModel.create({
-    university_id: req.user.university_id,
-    title: 'Lost Report Submitted',
-    message: `Your lost item report "${item_name}" has been recorded and is now pending a match.`,
-    notification_type: 'General',
-    related_report_id: report.lost_report_id,
-  });
+  // Get all users in the system to notify them (Admin, Staff, and Students)
+  const users = await userModel.findAll();
+  
+  for (const user of users) {
+    let title, message;
+    if (user.university_id === req.user.university_id) {
+      title = 'Lost Report Submitted';
+      message = `Your lost item report "${item_name}" has been recorded and is now pending a match.`;
+    } else {
+      title = 'New Lost Item Reported';
+      message = `A new lost item "${item_name}" has been reported at ${last_known_location || 'Campus'}.`;
+    }
+
+    await notificationModel.create({
+      university_id: user.university_id,
+      title,
+      message,
+      notification_type: 'General',
+      related_report_id: report.lost_report_id,
+    });
+  }
 
   return success(res, { statusCode: 201, message: 'Lost report created.', data: { report } });
 });

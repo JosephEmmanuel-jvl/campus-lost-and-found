@@ -12,6 +12,7 @@ const { asyncHandler, ApiError } = require('../utils/asyncHandler');
 const { success } = require('../utils/apiResponse');
 const foundItemModel = require('../models/foundItemModel');
 const notificationModel = require('../models/notificationModel');
+const userModel = require('../models/userModel');
 
 const getAll = asyncHandler(async (req, res) => {
   const { status, category } = req.query;
@@ -39,13 +40,27 @@ const create = asyncHandler(async (req, res) => {
     date_found,
   });
 
-  await notificationModel.create({
-    university_id: req.user.university_id,
-    title: 'Found Report Submitted',
-    message: `Your found item report "${item_name}" has been recorded.`,
-    notification_type: 'General',
-    related_report_id: report.found_report_id,
-  });
+  // Get all users in the system to notify them (Admin, Staff, and Students)
+  const users = await userModel.findAll();
+
+  for (const user of users) {
+    let title, message;
+    if (user.university_id === req.user.university_id) {
+      title = 'Found Report Submitted';
+      message = `Your found item report "${item_name}" has been recorded.`;
+    } else {
+      title = 'New Found Item Reported';
+      message = `A new found item "${item_name}" has been reported at ${location_found || 'Campus'}.`;
+    }
+
+    await notificationModel.create({
+      university_id: user.university_id,
+      title,
+      message,
+      notification_type: 'General',
+      related_report_id: report.found_report_id,
+    });
+  }
 
   return success(res, { statusCode: 201, message: 'Found report created.', data: { report } });
 });

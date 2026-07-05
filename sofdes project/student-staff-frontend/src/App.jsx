@@ -94,13 +94,20 @@ export default function AppShell() {
               key={item.to}
               to={item.to}
               className={({ isActive }) =>
-                `flex items-center gap-3 rounded-md px-3 py-3 text-sm font-medium ${
+                `flex items-center justify-between rounded-md px-3 py-3 text-sm font-medium ${
                   isActive ? 'bg-campus-mist text-campus-green' : 'text-slate-600 hover:bg-slate-100'
                 }`
               }
             >
-              <item.icon className="h-4 w-4" />
-              {item.label}
+              <div className="flex items-center gap-3">
+                <item.icon className="h-4 w-4" />
+                <span>{item.label}</span>
+              </div>
+              {item.label === 'Notifications' && unreadCount > 0 && (
+                <span className="flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold text-white">
+                  {unreadCount}
+                </span>
+              )}
             </NavLink>
           ))}
         </nav>
@@ -126,12 +133,25 @@ export default function AppShell() {
               <p className="font-bold">Lost & Found</p>
             </div>
           </div>
-          <button
-            onClick={handleLogout}
-            className="rounded-md border border-slate-300 p-2 text-slate-600 hover:bg-slate-100"
-          >
-            <LogOut className="h-4 w-4" />
-          </button>
+          <div className="flex items-center gap-2">
+            <NavLink
+              to="/notifications"
+              className="relative rounded-md border border-slate-300 p-2 text-slate-600 hover:bg-slate-100"
+            >
+              <Bell className="h-4 w-4" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[8px] font-bold text-white ring-1 ring-white">
+                  {unreadCount}
+                </span>
+              )}
+            </NavLink>
+            <button
+              onClick={handleLogout}
+              className="rounded-md border border-slate-300 p-2 text-slate-600 hover:bg-slate-100"
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
+          </div>
         </div>
         <nav className="mt-3 flex gap-2 overflow-x-auto pb-1">
           {navItems.map((item) => (
@@ -157,6 +177,21 @@ export default function AppShell() {
           ))}
         </nav>
       </header>
+
+      {/* Desktop Notification Bell at Upper Right */}
+      <div className="fixed top-6 right-8 z-40 hidden lg:block">
+        <NavLink
+          to="/notifications"
+          className="relative flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-md border border-slate-200 text-slate-600 hover:text-campus-green hover:bg-slate-50 transition-colors"
+        >
+          <Bell className="h-5 w-5" />
+          {unreadCount > 0 && (
+            <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-[10px] font-bold text-white ring-2 ring-white animate-pulse">
+              {unreadCount}
+            </span>
+          )}
+        </NavLink>
+      </div>
 
       <main className="px-4 py-6 lg:ml-72 lg:px-8">
         <Outlet />
