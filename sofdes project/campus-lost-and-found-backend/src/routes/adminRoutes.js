@@ -5,11 +5,11 @@
 const express = require('express');
 const { dashboard, reportsQueue, claimsQueue, users } = require('../controllers/adminController');
 const { authenticate } = require('../middleware/authMiddleware');
-const { adminOnly } = require('../middleware/roleMiddleware');
+const { staffOrAdmin } = require('../middleware/roleMiddleware');
 
 const router = express.Router();
 
-router.use(authenticate, adminOnly);
+router.use(authenticate, staffOrAdmin);
 
 router.get('/dashboard', dashboard);
 router.get('/reports', reportsQueue);

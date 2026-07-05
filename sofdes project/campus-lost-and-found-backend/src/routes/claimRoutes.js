@@ -7,7 +7,7 @@ const {
   submitClaim, getUserClaims, getClaim, approveClaim, rejectClaim,
 } = require('../controllers/claimController');
 const { authenticate } = require('../middleware/authMiddleware');
-const { adminOnly } = require('../middleware/roleMiddleware');
+const { staffOrAdmin } = require('../middleware/roleMiddleware');
 const { validateBody } = require('../middleware/validate');
 
 const router = express.Router();
@@ -20,7 +20,7 @@ const submitRules = {
 router.post('/', authenticate, validateBody(submitRules), submitClaim);
 router.get('/user', authenticate, getUserClaims);
 router.get('/:id', authenticate, getClaim);
-router.patch('/:id/approve', authenticate, adminOnly, approveClaim);
-router.patch('/:id/reject', authenticate, adminOnly, rejectClaim);
+router.patch('/:id/approve', authenticate, staffOrAdmin, approveClaim);
+router.patch('/:id/reject', authenticate, staffOrAdmin, rejectClaim);
 
 module.exports = router;

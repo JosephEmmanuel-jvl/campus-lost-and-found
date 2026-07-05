@@ -46,5 +46,6 @@ function authorize(...allowedRoles) {
 
 // Shorthand for the Admin-only endpoints in the authorization matrix.
 const adminOnly = authorize('Admin');
+const staffOrAdmin = authorize('Staff', 'Admin');
 
-module.exports = { authorize, adminOnly, VALID_ROLES };
+module.exports = { authorize, adminOnly, staffOrAdmin, VALID_ROLES };

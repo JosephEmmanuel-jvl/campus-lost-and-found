@@ -4,11 +4,11 @@
 const express = require('express');
 const { getSuggestedMatches, confirmMatch } = require('../controllers/matchController');
 const { authenticate } = require('../middleware/authMiddleware');
-const { adminOnly } = require('../middleware/roleMiddleware');
+const { staffOrAdmin } = require('../middleware/roleMiddleware');
 
 const router = express.Router();
 
 router.get('/:reportId', authenticate, getSuggestedMatches);
-router.patch('/:reportId', authenticate, adminOnly, confirmMatch);
+router.patch('/:reportId', authenticate, staffOrAdmin, confirmMatch);
 
 module.exports = router;
