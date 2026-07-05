@@ -47,6 +47,14 @@ function RoleRoute({ allowedRoles }) {
   return <Outlet />;
 }
 
+function DashboardRouter() {
+  const role = getUserRole();
+  if (role === 'Staff' || role === 'Admin') {
+    return <StaffMenu />;
+  }
+  return <StudentDashboard />;
+}
+
 function Root() {
   return (
     <BrowserRouter>
@@ -56,7 +64,7 @@ function Root() {
         {/* Protected routes */}
         <Route element={<ProtectedRoute />}>
           <Route element={<AppShell />}>
-            <Route path="/dashboard" element={<StudentDashboard />} />
+            <Route path="/dashboard" element={<DashboardRouter />} />
             <Route path="/report-lost" element={<ReportLostItem />} />
             <Route path="/report-found" element={<ReportFoundItem />} />
             <Route path="/search" element={<SearchPage />} />
