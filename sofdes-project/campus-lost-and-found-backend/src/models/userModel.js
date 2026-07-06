@@ -30,7 +30,11 @@ const userModel = {
         WHERE university_id = ?`,
       [universityId]
     );
-    return rows[0] || null;
+    const user = rows[0] || null;
+    if (user && user.email && user.email.includes('@temp.edu')) {
+      user.email = '';
+    }
+    return user;
   },
 
   /**
@@ -44,7 +48,11 @@ const userModel = {
         WHERE email = ?`,
       [email]
     );
-    return rows[0] || null;
+    const user = rows[0] || null;
+    if (user && user.email && user.email.includes('@temp.edu')) {
+      user.email = '';
+    }
+    return user;
   },
 
   /**
@@ -55,35 +63,43 @@ const userModel = {
       `SELECT ${USER_COLUMNS} FROM user WHERE university_id = ?`,
       [universityId]
     );
-    return rows[0] || null;
+    const user = rows[0] || null;
+    if (user && user.email && user.email.includes('@temp.edu')) {
+      user.email = '';
+    }
+    return user;
   },
 
   /**
    * Create a new user. `passwordHash` must already be bcrypt-hashed by the
-   * caller (Member 1's registration controller).
+   * caller.
    */
-  async create({ university_id, first_name, last_name, email, passwordHash, contact_number = null, role = 'Student' }) {
+  async create({ university_id, first_name = '', last_name = '', email = '', passwordHash, contact_number = null, role = 'Student' }) {
+    const dbFirstName = first_name || '';
+    const dbLastName = last_name || '';
+    const dbEmail = email || `${university_id.toLowerCase()}@temp.edu`;
+
     await pool.execute(
       `INSERT INTO user
          (university_id, first_name, last_name, email, password_hash, contact_number, role)
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [university_id, first_name, last_name, email, passwordHash, contact_number, role]
+      [university_id, dbFirstName, dbLastName, dbEmail, passwordHash, contact_number, role]
     );
     return this.getProfile(university_id);
   },
 
   /**
-   * Update the editable profile fields (contact number only, per scope —
-   * no updated_at column exists by design).
+   * Update the editable profile fields (first name, last name, email, contact number).
    */
-  async updateProfile(universityId, { first_name, last_name, contact_number }) {
+  async updateProfile(universityId, { first_name, last_name, email, contact_number }) {
     await pool.execute(
       `UPDATE user
           SET first_name = COALESCE(?, first_name),
               last_name  = COALESCE(?, last_name),
+              email      = COALESCE(?, email),
               contact_number = ?
         WHERE university_id = ?`,
-      [first_name ?? null, last_name ?? null, contact_number ?? null, universityId]
+      [first_name ?? null, last_name ?? null, email ?? null, contact_number ?? null, universityId]
     );
     return this.getProfile(universityId);
   },
@@ -95,7 +111,12 @@ const userModel = {
     const [rows] = await pool.execute(
       `SELECT ${USER_COLUMNS} FROM user ORDER BY created_at DESC`
     );
-    return rows;
+    return rows.map(user => {
+      if (user && user.email && user.email.includes('@temp.edu')) {
+        user.email = '';
+      }
+      return user;
+    });
   },
 };
 

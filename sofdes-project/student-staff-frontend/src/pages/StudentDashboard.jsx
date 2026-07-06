@@ -14,12 +14,17 @@ export default function StudentDashboard() {
 
   useEffect(() => {
     // Load logged-in user from localStorage
-    try {
-      const user = JSON.parse(localStorage.getItem('user'));
-      setCurrentUser(user);
-    } catch (err) {
-      setError('Failed to load user profile.');
-    }
+    const loadUser = () => {
+      try {
+        const user = JSON.parse(localStorage.getItem('user'));
+        setCurrentUser(user);
+      } catch (err) {
+        setError('Failed to load user profile.');
+      }
+    };
+    loadUser();
+    window.addEventListener('userUpdated', loadUser);
+    return () => window.removeEventListener('userUpdated', loadUser);
   }, []);
 
   useEffect(() => {
@@ -127,7 +132,7 @@ export default function StudentDashboard() {
     <div className="space-y-6">
       <PageHeader
         eyebrow={isStaff ? "Staff dashboard" : "Student dashboard"}
-        title={`Welcome back, ${currentUser?.first_name || 'User'}`}
+        title={currentUser?.first_name ? `Welcome back, ${currentUser.first_name}!` : 'Welcome!'}
         description={isStaff ? "Track your registered reports, match alerts, and system notifications." : "Track reports, review possible matches, and start a claim when an item appears to be yours."}
         action={<PrimaryLink to="/report-lost" icon={FilePlus2}>Report lost item</PrimaryLink>}
       />

@@ -9,6 +9,9 @@ export default function Profile() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
     phone: '',
     program: 'Computer Science',
     year: '3rd Year',
@@ -25,6 +28,9 @@ export default function Profile() {
         setUser(sessionUser);
         setFormData(prev => ({
           ...prev,
+          firstName: sessionUser.first_name || '',
+          lastName: sessionUser.last_name || '',
+          email: sessionUser.email || '',
           phone: sessionUser.contact_number || '',
           year: sessionUser.role === 'Student' ? '3rd Year' : 'Staff',
         }));
@@ -69,8 +75,9 @@ export default function Profile() {
     e.preventDefault();
     try {
       const res = await apiClient.put('/api/v1/users/profile', {
-        first_name: user.first_name,
-        last_name: user.last_name,
+        first_name: formData.firstName,
+        last_name: formData.lastName,
+        email: formData.email,
         contact_number: formData.phone,
       });
       if (res && res.data && res.data.user) {
@@ -78,6 +85,7 @@ export default function Profile() {
         localStorage.setItem('user', JSON.stringify(res.data.user));
         setUser(res.data.user);
         setSaveSuccess(true);
+        window.dispatchEvent(new Event('userUpdated'));
         setTimeout(() => setSaveSuccess(false), 3000);
       }
     } catch (err) {
@@ -118,14 +126,33 @@ export default function Profile() {
               </div>
             )}
             <div className="grid gap-5 md:grid-cols-2">
-              <FormField label="Full name">
-                <input className={`${inputClasses} bg-slate-100 cursor-not-allowed`} readOnly value={fullName} />
+              <FormField label="First Name">
+                <input 
+                  className={inputClasses} 
+                  value={formData.firstName} 
+                  onChange={(e) => setFormData({ ...formData, firstName: e.target.value })} 
+                  required
+                />
+              </FormField>
+              <FormField label="Last Name">
+                <input 
+                  className={inputClasses} 
+                  value={formData.lastName} 
+                  onChange={(e) => setFormData({ ...formData, lastName: e.target.value })} 
+                  required
+                />
               </FormField>
               <FormField label="University ID">
                 <input className={`${inputClasses} bg-slate-100 cursor-not-allowed`} readOnly value={user.university_id} />
               </FormField>
               <FormField label="University email">
-                <input className={`${inputClasses} bg-slate-100 cursor-not-allowed`} readOnly value={user.email} />
+                <input 
+                  type="email"
+                  className={inputClasses} 
+                  value={formData.email} 
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })} 
+                  required
+                />
               </FormField>
               <FormField label="Contact number">
                 <input 

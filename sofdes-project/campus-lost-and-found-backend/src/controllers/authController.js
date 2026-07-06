@@ -59,21 +59,14 @@ const login = asyncHandler(async (req, res) => {
     // Hash and save the entered password using bcrypt
     const passwordHash = await bcrypt.hash(password, 10);
 
-    // Retrieve name and email from MOCK_CAMPUS_DATABASE if present, otherwise use defaults
-    const campusUser = MOCK_CAMPUS_DATABASE.find(u => u.university_id === university_id);
-    const first_name = campusUser?.first_name || assignedRole;
-    const last_name = campusUser?.last_name || 'User';
-    const email = campusUser?.email || `${university_id.toLowerCase()}@university.edu`;
-    const contact_number = campusUser?.contact_number || null;
-
-    // Create a new user record in the USER table
+    // Create a new user record in the USER table with empty first_name, last_name, and email
     user = await userModel.create({
       university_id,
-      first_name,
-      last_name,
-      email,
+      first_name: '',
+      last_name: '',
+      email: '',
       passwordHash,
-      contact_number,
+      contact_number: null,
       role: assignedRole
     });
   }

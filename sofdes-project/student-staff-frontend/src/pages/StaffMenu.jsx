@@ -26,14 +26,23 @@ export default function StaffMenu() {
   const [rejectId, setRejectId] = useState(null);
   const [remarks, setRemarks] = useState('');
 
-  // Get current user role
-  let role = '';
-  try {
-    const user = JSON.parse(localStorage.getItem('user'));
-    role = user?.role || '';
-  } catch {
-    role = '';
-  }
+  const [currentUser, setCurrentUser] = useState(null);
+
+  useEffect(() => {
+    const loadUser = () => {
+      try {
+        const user = JSON.parse(localStorage.getItem('user'));
+        setCurrentUser(user);
+      } catch (err) {
+        console.error('Failed to load user profile.', err);
+      }
+    };
+    loadUser();
+    window.addEventListener('userUpdated', loadUser);
+    return () => window.removeEventListener('userUpdated', loadUser);
+  }, []);
+
+  const role = currentUser?.role || '';
 
   const fetchData = async () => {
     setLoading(true);
@@ -117,8 +126,8 @@ export default function StaffMenu() {
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Campus Safety"
-        title={role === 'Admin' ? 'Admin Control Center' : 'Staff Control Center'}
+        eyebrow={role === 'Admin' ? 'Admin Control Center' : 'Staff Control Center'}
+        title={currentUser?.first_name ? `Welcome back, ${currentUser.first_name}!` : 'Welcome!'}
         description="Verify ownership claims, view system stats, and confirm suggestive matches."
         action={<PrimaryLink to="/report-found" icon={PackageOpen}>Record found item</PrimaryLink>}
       />

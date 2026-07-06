@@ -18,10 +18,11 @@ const getProfile = asyncHandler(async (req, res) => {
 });
 
 const updateProfile = asyncHandler(async (req, res) => {
-  const { first_name, last_name, contact_number } = req.body;
+  const { first_name, last_name, email, contact_number } = req.body;
   const updated = await userModel.updateProfile(req.user.university_id, {
     first_name,
     last_name,
+    email,
     contact_number,
   });
   return success(res, { message: 'Profile updated.', data: { user: updated } });
