@@ -1,13 +1,8 @@
 {
-  "functions": {
-    "src/app.js": {
-      "runtime": "@vercel/node"
-    }
-  },
   "rewrites": [
     {
       "source": "/(.*)",
-      "destination": "/src/app.js"
+      "destination": "/api/index"
     }
   ]
 }
