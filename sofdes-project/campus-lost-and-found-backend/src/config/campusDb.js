@@ -16,7 +16,7 @@ const MOCK_CAMPUS_DATABASE = [
     contact_number: '09171234567'
   },
   {
-    university_id: '2021-00002',
+    university_id: '2021-10002',
     first_name: 'Benjamin',
     last_name: 'Cruz',
     email: 'benjamin.cruz@university.edu',
@@ -24,14 +24,14 @@ const MOCK_CAMPUS_DATABASE = [
     contact_number: '09181234567'
   },
   {
-    university_id: '2022-10001',
+    university_id: '2022-20001',
     first_name: 'Carla',
     last_name: 'Reyes',
     email: 'carla.reyes@university.edu',
     password_hash: '$2b$10$Nds7rdJdMqcercnP3jQxsOC3pCUs5YsIlSG1UIGaFc0t.4lIF89cm'
   },
   {
-    university_id: '2022-10002',
+    university_id: '2022-20002',
     first_name: 'Daniel',
     last_name: 'Mendoza',
     email: 'daniel.mendoza@university.edu',
@@ -39,7 +39,7 @@ const MOCK_CAMPUS_DATABASE = [
     contact_number: '09201234567'
   },
   {
-    university_id: '2022-10003',
+    university_id: '2022-20003',
     first_name: 'Erika',
     last_name: 'Villanueva',
     email: 'erika.villanueva@university.edu',

@@ -29,30 +29,24 @@ const login = asyncHandler(async (req, res) => {
 
   // 1. Check if user already exists in the application's local user table
   let user = await userModel.findById(university_id);
-  let passwordMatches = false;
 
   if (user) {
-    // Existing user: check password against stored hash
-    passwordMatches = await bcrypt.compare(password, user.password_hash);
+    // Existing user: verify the password (bcrypt)
+    const passwordMatches = await bcrypt.compare(password, user.password_hash);
     if (!passwordMatches) {
       throw new ApiError(401, 'Invalid University ID or password.');
     }
   } else {
-    // 2. User does not exist locally: search in the mock campus database
-    const campusUser = MOCK_CAMPUS_DATABASE.find(u => u.university_id === university_id);
-    if (!campusUser) {
-      throw new ApiError(401, 'Invalid University ID or password.');
+    // 2. User does NOT exist in the USER table: First-Time Login
+    // Validate University ID Format: YYYY-DXXXX (where D is 0, 1, or 2)
+    const idRegex = /^\d{4}-[012]\d{4}$/;
+    if (!idRegex.test(university_id)) {
+      throw new ApiError(400, 'Invalid University ID format. Must follow YYYY-DXXXX (where D is 0, 1, or 2).');
     }
 
-    // Verify password against campus database hash
-    passwordMatches = await bcrypt.compare(password, campusUser.password_hash);
-    if (!passwordMatches) {
-      throw new ApiError(401, 'Invalid University ID or password.');
-    }
-
-    // Determine role based on University ID pattern: xxxx-0xxx (Admin), xxxx-1xxx (Staff), xxxx-2xxx (Student)
-    // The format is 9 characters (e.g. '2026-20101'). Let's parse the character after the hyphen (index 5)
-    const roleDigit = university_id.split('-')[1]?.[0];
+    // Determine the role from the first digit after the dash: 0 -> Admin, 1 -> Staff, 2 -> Student
+    const parts = university_id.split('-');
+    const roleDigit = parts[1]?.[0];
     let assignedRole = 'Student';
     if (roleDigit === '0') {
       assignedRole = 'Admin';
@@ -62,14 +56,24 @@ const login = asyncHandler(async (req, res) => {
       assignedRole = 'Student';
     }
 
-    // Create user record in application's user table
+    // Hash and save the entered password using bcrypt
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    // Retrieve name and email from MOCK_CAMPUS_DATABASE if present, otherwise use defaults
+    const campusUser = MOCK_CAMPUS_DATABASE.find(u => u.university_id === university_id);
+    const first_name = campusUser?.first_name || assignedRole;
+    const last_name = campusUser?.last_name || 'User';
+    const email = campusUser?.email || `${university_id.toLowerCase()}@university.edu`;
+    const contact_number = campusUser?.contact_number || null;
+
+    // Create a new user record in the USER table
     user = await userModel.create({
-      university_id: campusUser.university_id,
-      first_name: campusUser.first_name,
-      last_name: campusUser.last_name,
-      email: campusUser.email,
-      passwordHash: campusUser.password_hash,
-      contact_number: campusUser.contact_number || null,
+      university_id,
+      first_name,
+      last_name,
+      email,
+      passwordHash,
+      contact_number,
       role: assignedRole
     });
   }
