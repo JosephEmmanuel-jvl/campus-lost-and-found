@@ -28,8 +28,9 @@ app.use(async (req, res, next) => {
   if (!dbInitialized) {
     try {
       const { pool } = require('./config/database');
-      const { initializeDatabase } = require('./config/initDb');
+      const { initializeDatabase, ensureMockUsersExist } = require('./config/initDb');
       await initializeDatabase(pool);
+      await ensureMockUsersExist(pool);
       dbInitialized = true;
     } catch (err) {
       console.error('[Vercel DB Init Error]', err);

@@ -66,10 +66,52 @@ async function initializeDatabase(pool) {
     } finally {
       await client.end();
     }
+    
+    // Ensure all mock Admin and Staff users exist in the user table to receive notifications
+    await ensureMockUsersExist(pool);
   } catch (error) {
     console.error('[DB Init] Error during database initialization:', error);
     throw error;
   }
 }
 
-module.exports = { initializeDatabase };
+async function ensureMockUsersExist(pool) {
+  try {
+    const { MOCK_CAMPUS_DATABASE } = require('./campusDb');
+    const userModel = require('../models/userModel');
+
+    console.log('[DB Init] Ensuring Admin and Staff mock users exist in database...');
+    
+    // Filter for Admin (xxxx-0xxx) and Staff (xxxx-1xxx) users
+    const staffAndAdmins = MOCK_CAMPUS_DATABASE.filter(u => {
+      const parts = u.university_id.split('-');
+      const roleDigit = parts[1]?.[0];
+      return roleDigit === '0' || roleDigit === '1';
+    });
+
+    for (const u of staffAndAdmins) {
+      const existing = await userModel.findById(u.university_id);
+      if (!existing) {
+        console.log(`[DB Init] Auto-registering Admin/Staff user to receive notifications: ${u.university_id} (${u.first_name})`);
+        const parts = u.university_id.split('-');
+        const roleDigit = parts[1]?.[0];
+        const role = roleDigit === '0' ? 'Admin' : 'Staff';
+        
+        await userModel.create({
+          university_id: u.university_id,
+          first_name: u.first_name,
+          last_name: u.last_name,
+          email: u.email,
+          passwordHash: u.password_hash,
+          contact_number: u.contact_number || null,
+          role
+        });
+      }
+    }
+    console.log('[DB Init] Admin and Staff mock users check completed.');
+  } catch (err) {
+    console.error('[DB Init] Error ensuring mock users exist:', err);
+  }
+}
+
+module.exports = { initializeDatabase, ensureMockUsersExist };
