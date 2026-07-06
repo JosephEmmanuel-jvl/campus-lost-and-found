@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { ArrowRight, FileCheck2, Loader2 } from 'lucide-react';
 import { AlertStrip, FormField, ItemThumbnail, PageHeader, SectionCard, StatusBadge, inputClasses, textareaClasses } from '../components/ui';
+import { API_BASE_URL } from '../config';
 
 export default function ClaimRequest() {
   const { foundId } = useParams();
@@ -37,7 +38,7 @@ export default function ClaimRequest() {
         setLoadingItem(true);
         setError('');
         try {
-          const response = await fetch(`http://127.0.0.1:5000/api/v1/found-items/${foundId}`, {
+          const response = await fetch(`${API_BASE_URL}/api/v1/found-items/${foundId}`, {
             headers: {
               'Authorization': `Bearer ${token}`,
             },
@@ -60,7 +61,7 @@ export default function ClaimRequest() {
       const fetchUnclaimedList = async () => {
         setLoadingList(true);
         try {
-          const response = await fetch('http://127.0.0.1:5000/api/v1/found-items', {
+          const response = await fetch(`${API_BASE_URL}/api/v1/found-items`, {
             headers: {
               'Authorization': `Bearer ${token}`,
             },
@@ -93,7 +94,7 @@ export default function ClaimRequest() {
     setError('');
     const token = localStorage.getItem('token');
     try {
-      const response = await fetch(`http://127.0.0.1:5000/api/v1/found-items/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/found-items/${id}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -125,7 +126,7 @@ export default function ClaimRequest() {
 
     const token = localStorage.getItem('token');
     try {
-      const response = await fetch('http://127.0.0.1:5000/api/v1/claims', {
+      const response = await fetch(`${API_BASE_URL}/api/v1/claims`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

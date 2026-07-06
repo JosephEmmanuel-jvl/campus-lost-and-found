@@ -8,12 +8,16 @@
 
 const app = require('./app');
 const env = require('./config/env');
-const { testConnection } = require('./config/database');
+const { pool, testConnection } = require('./config/database');
+const { initializeDatabase } = require('./config/initDb');
 
 async function start() {
   try {
     await testConnection();
     console.log(`[DB] Connected to MySQL database "${env.db.database}" at ${env.db.host}:${env.db.port}`);
+
+    // Auto-initialize tables and seed data if database is empty (e.g. fresh Railway deploy)
+    await initializeDatabase(pool);
 
     app.listen(env.port, () => {
       console.log(`[Server] Running in ${env.nodeEnv} mode on http://localhost:${env.port}`);

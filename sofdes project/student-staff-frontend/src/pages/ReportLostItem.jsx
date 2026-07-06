@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, Camera, Upload, X } from 'lucide-react';
 import { campusLocations, categories } from '../data/mockData';
 import { AlertStrip, FormField, PageHeader, SectionCard, inputClasses, selectClasses, textareaClasses } from '../components/ui';
+import { API_BASE_URL } from '../config';
 
 export default function ReportLostItem() {
   const navigate = useNavigate();
@@ -83,7 +84,7 @@ export default function ReportLostItem() {
     const last_known_location = `${formData.building}${formData.area ? ` - ${formData.area}` : ''}`;
 
     try {
-      const response = await fetch('http://127.0.0.1:5000/api/v1/lost-items', {
+      const response = await fetch(`${API_BASE_URL}/api/v1/lost-items`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

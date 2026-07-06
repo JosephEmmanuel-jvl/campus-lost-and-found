@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ClipboardCheck, Filter, Search, SlidersHorizontal } from 'lucide-react';
 import { categories, campusLocations } from '../data/mockData';
 import { EmptyState, ItemThumbnail, PageHeader, SectionCard, StatusBadge, inputClasses, selectClasses } from '../components/ui';
+import { API_BASE_URL } from '../config';
 
 export default function SearchPage() {
   const [keyword, setKeyword] = useState('');
@@ -25,7 +26,7 @@ export default function SearchPage() {
       if (location && location !== 'All locations') params.append('location', location);
 
       try {
-        const response = await fetch(`http://127.0.0.1:5000/api/v1/search?${params.toString()}`, {
+        const response = await fetch(`${API_BASE_URL}/api/v1/search?${params.toString()}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',

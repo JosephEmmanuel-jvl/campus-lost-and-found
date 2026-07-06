@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Bell, IdCard, Mail, Phone, Save, ShieldCheck, UserRound } from 'lucide-react';
 import { FormField, PageHeader, SectionCard, StatCard, StatusBadge, inputClasses, selectClasses } from '../components/ui';
+import { API_BASE_URL } from '../config';
 
 export default function Profile() {
   const [user, setUser] = useState(null);
@@ -46,7 +47,7 @@ export default function Profile() {
 
       try {
         // Fetch Lost Reports to count user owned reports
-        const lostResponse = await fetch('http://127.0.0.1:5000/api/v1/lost-items', { headers });
+        const lostResponse = await fetch(`${API_BASE_URL}/api/v1/lost-items`, { headers });
         const lostJson = await lostResponse.json();
         if (lostResponse.ok) {
           const rawLost = lostJson.data.reports || [];
@@ -55,7 +56,7 @@ export default function Profile() {
         }
 
         // Fetch Notifications to count unread notifications
-        const notifResponse = await fetch('http://127.0.0.1:5000/api/v1/notifications', { headers });
+        const notifResponse = await fetch(`${API_BASE_URL}/api/v1/notifications`, { headers });
         const notifJson = await notifResponse.json();
         if (notifResponse.ok) {
           const rawNotif = notifJson.data.notifications || [];

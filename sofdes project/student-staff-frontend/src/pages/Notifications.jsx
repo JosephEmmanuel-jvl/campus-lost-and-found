@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { BellRing, Megaphone } from 'lucide-react';
 import { PageHeader, SectionCard, StatCard, StatusBadge } from '../components/ui';
+import { API_BASE_URL } from '../config';
 
 export default function Notifications() {
   const [notifications, setNotifications] = useState([]);
@@ -18,7 +19,7 @@ export default function Notifications() {
     };
 
     try {
-      const response = await fetch('http://127.0.0.1:5000/api/v1/notifications', { headers });
+      const response = await fetch(`${API_BASE_URL}/api/v1/notifications`, { headers });
       const json = await response.json();
 
       if (response.ok) {
@@ -64,7 +65,7 @@ export default function Notifications() {
     };
 
     try {
-      const response = await fetch(`http://127.0.0.1:5000/api/v1/notifications/${rawId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/notifications/${rawId}`, {
         method: 'PATCH',
         headers,
       });

@@ -12,6 +12,8 @@ import {
   UserRound,
 } from 'lucide-react';
 
+import { API_BASE_URL } from './config';
+
 const allNavItems = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/report-lost', label: 'Report Lost', icon: FilePlus2 },
@@ -41,7 +43,7 @@ export default function AppShell() {
       const token = localStorage.getItem('token');
       if (!token) return;
       try {
-        const res = await fetch('http://127.0.0.1:5000/api/v1/notifications', {
+        const res = await fetch(`${API_BASE_URL}/api/v1/notifications`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
