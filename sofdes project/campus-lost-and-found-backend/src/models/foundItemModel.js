@@ -13,7 +13,7 @@ const foundItemModel = {
       `INSERT INTO found_item_report
          (university_id, item_name, description, category, keywords,
           photo_url, location_found, date_found)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING found_report_id`,
       [university_id, item_name, description, category, keywords, photo_url, location_found, date_found]
     );
     return this.findById(result.insertId);

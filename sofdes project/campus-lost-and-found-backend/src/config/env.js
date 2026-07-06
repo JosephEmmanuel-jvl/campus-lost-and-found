@@ -33,7 +33,7 @@ const env = {
   // Database
   db: {
     host: required('DB_HOST'),
-    port: parseInt(optional('DB_PORT', '3306'), 10),
+    port: parseInt(optional('DB_PORT', '5432'), 10),
     user: required('DB_USER'),
     password: optional('DB_PASSWORD', ''),
     database: required('DB_NAME'),

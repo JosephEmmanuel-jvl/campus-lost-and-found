@@ -18,7 +18,7 @@ const lostItemModel = {
       `INSERT INTO lost_item_report
          (university_id, item_name, description, category, keywords,
           photo_url, last_known_location, date_lost)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING lost_report_id`,
       [university_id, item_name, description, category, keywords, photo_url, last_known_location, date_lost]
     );
     return this.findById(result.insertId);

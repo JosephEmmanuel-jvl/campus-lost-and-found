@@ -17,7 +17,7 @@ const claimModel = {
     const [result] = await pool.execute(
       `INSERT INTO claim_request
          (found_report_id, claimant_university_id, proof_of_ownership)
-       VALUES (?, ?, ?)`,
+       VALUES (?, ?, ?) RETURNING claim_id`,
       [found_report_id, claimant_university_id, proof_of_ownership]
     );
     return this.findById(result.insertId);

@@ -22,7 +22,7 @@ const notificationModel = {
     const [result] = await pool.execute(
       `INSERT INTO notification
          (university_id, title, message, notification_type, related_report_id)
-       VALUES (?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?) RETURNING notification_id`,
       [university_id, title, message, notification_type, related_report_id]
     );
     return this.findById(result.insertId);
