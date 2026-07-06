@@ -33,7 +33,7 @@ async function request(endpoint, options = {}) {
   try {
     const response = await fetch(url, config);
 
-    if (response.status === 401) {
+    if (response.status === 401 && !endpoint.includes('auth/login')) {
       // Token is invalid or expired, trigger auto-logout
       localStorage.removeItem('token');
       localStorage.removeItem('user');
