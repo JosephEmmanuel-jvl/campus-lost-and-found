@@ -21,28 +21,35 @@ INSERT INTO "user" (university_id, first_name, last_name, email, password_hash, 
 -- ---------------------------------------------------------------------------
 -- LOST ITEM REPORTS
 --   #1 Carla - Pending (no match yet)
---   #2 Daniel - will be Matched to Found #1
+--   #2 Daniel - will be Matched to Found #1 (set to NULL initially to avoid circular dependency check)
 -- ---------------------------------------------------------------------------
 INSERT INTO lost_item_report
 (lost_report_id, university_id, item_name, description, category, keywords, photo_url, last_known_location, date_lost, status, matched_found_report_id) VALUES
 (1, '2022-10001', 'Black Umbrella', 'A compact black automatic umbrella with a wooden handle.', 'Personal Belongings', 'umbrella,black,compact,wooden handle', NULL, 'Main Library, 2nd Floor', '2026-06-20', 'Pending', NULL),
-(2, '2022-10002', 'Blue Water Bottle', 'A 1-liter blue Hydro Flask with a dented cap and a mountain sticker.', 'Personal Belongings', 'water bottle,blue,hydro flask,sticker', NULL, 'Gymnasium Lobby', '2026-06-22', 'Matched', 1);
+(2, '2022-10002', 'Blue Water Bottle', 'A 1-liter blue Hydro Flask with a dented cap and a mountain sticker.', 'Personal Belongings', 'water bottle,blue,hydro flask,sticker', NULL, 'Gymnasium Lobby', '2026-06-22', 'Matched', NULL);
 
 -- Since we forced ID values above, reset serial sequence to prevent duplicate key errors later
 SELECT setval('lost_item_report_lost_report_id_seq', (SELECT MAX(lost_report_id) FROM lost_item_report));
 
 -- ---------------------------------------------------------------------------
 -- FOUND ITEM REPORTS
---   #1 Erika - Matched to Lost #2 (the blue water bottle)
+--   #1 Erika - Matched to Lost #2 (the blue water bottle, set to NULL initially)
 --   #2 Benjamin (Staff) - Unclaimed
 -- ---------------------------------------------------------------------------
 INSERT INTO found_item_report
 (found_report_id, university_id, item_name, description, category, keywords, photo_url, location_found, date_found, status, matched_lost_report_id) VALUES
-(1, '2022-10003', 'Blue Hydro Flask', 'Found a blue metal water bottle with a mountain sticker near the gym.', 'Personal Belongings', 'water bottle,blue,hydro flask,sticker', NULL, 'Gymnasium Court A', '2026-06-23', 'Matched', 2),
+(1, '2022-10003', 'Blue Hydro Flask', 'Found a blue metal water bottle with a mountain sticker near the gym.', 'Personal Belongings', 'water bottle,blue,hydro flask,sticker', NULL, 'Gymnasium Court A', '2026-06-23', 'Matched', NULL),
 (2, '2021-00002', 'Silver Wristwatch', 'A silver analog wristwatch found on a classroom desk.', 'Accessories', 'watch,silver,analog,wristwatch', NULL, 'Room 305, Engineering Building', '2026-06-25', 'Unclaimed', NULL);
 
 -- Reset serial sequence
 SELECT setval('found_item_report_found_report_id_seq', (SELECT MAX(found_report_id) FROM found_item_report));
+
+-- ---------------------------------------------------------------------------
+-- UPDATE CIRCULAR MATCH REFERENCES
+-- Now that both lost and found item records exist, we update them to point to each other.
+-- ---------------------------------------------------------------------------
+UPDATE lost_item_report SET matched_found_report_id = 1 WHERE lost_report_id = 2;
+UPDATE found_item_report SET matched_lost_report_id = 2 WHERE found_report_id = 1;
 
 -- ---------------------------------------------------------------------------
 -- CLAIM REQUESTS
