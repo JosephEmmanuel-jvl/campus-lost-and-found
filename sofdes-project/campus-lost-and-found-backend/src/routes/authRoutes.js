@@ -9,7 +9,7 @@ const { validateBody } = require('../middleware/validate');
 const router = express.Router();
 
 const loginRules = {
-  email: { required: true, type: 'string' },
+  university_id: { required: true, type: 'string' },
   password: { required: true, type: 'string' },
 };
 
