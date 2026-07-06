@@ -22,6 +22,22 @@ const apiRoutes = require('./routes');
 
 const app = express();
 
+// --- Database Auto-Initialization for Serverless (Vercel) -----------------
+let dbInitialized = false;
+app.use(async (req, res, next) => {
+  if (!dbInitialized) {
+    try {
+      const { pool } = require('./config/database');
+      const { initializeDatabase } = require('./config/initDb');
+      await initializeDatabase(pool);
+      dbInitialized = true;
+    } catch (err) {
+      console.error('[Vercel DB Init Error]', err);
+    }
+  }
+  next();
+});
+
 // --- Global middleware ----------------------------------------------------
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
