@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, ClipboardCheck } from 'lucide-react';
 import { AlertStrip, ItemThumbnail, MiniTimeline, PageHeader, PrimaryLink, SectionCard, StatusBadge } from '../components/ui';
-import { API_BASE_URL } from '../config';
+import { apiClient } from '../api/client';
 
 export default function LostReportDetails() {
   const { id } = useParams(); // Raw database ID
@@ -24,45 +24,36 @@ export default function LostReportDetails() {
     const fetchDetails = async () => {
       setLoading(true);
       setError('');
-      const token = localStorage.getItem('token');
-      const headers = {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      };
 
       try {
         // 1. Fetch Lost Report Details
-        const detailsResponse = await fetch(`${API_BASE_URL}/api/v1/lost-items/${id}`, { headers });
-        const detailsJson = await detailsResponse.json();
+        const detailsJson = await apiClient.get(`/api/v1/lost-items/${id}`);
 
-        if (!detailsResponse.ok) {
-          throw new Error(detailsJson.message || 'Failed to load report details.');
+        if (detailsJson && detailsJson.data) {
+          const r = detailsJson.data.report;
+          const mappedReport = {
+            id: `LST-${String(r.lost_report_id).padStart(4, '0')}`,
+            rawId: r.lost_report_id,
+            title: r.item_name,
+            description: r.description,
+            category: r.category,
+            owner: `${r.first_name} ${r.last_name}`,
+            contact: r.email,
+            lostDate: r.date_lost,
+            reportedDate: new Date(r.created_at).toLocaleDateString(),
+            location: r.last_known_location,
+            lastSeen: r.description, // detailed description serves as area details
+            priority: r.status === 'Matched' ? 'High' : 'Normal',
+            status: r.status,
+            created_at: r.created_at
+          };
+          setReport(mappedReport);
         }
 
-        const r = detailsJson.data.report;
-        const mappedReport = {
-          id: `LST-${String(r.lost_report_id).padStart(4, '0')}`,
-          rawId: r.lost_report_id,
-          title: r.item_name,
-          description: r.description,
-          category: r.category,
-          owner: `${r.first_name} ${r.last_name}`,
-          contact: r.email,
-          lostDate: r.date_lost,
-          reportedDate: new Date(r.created_at).toLocaleDateString(),
-          location: r.last_known_location,
-          lastSeen: r.description, // detailed description serves as area details
-          priority: r.status === 'Matched' ? 'High' : 'Normal',
-          status: r.status,
-          created_at: r.created_at
-        };
-        setReport(mappedReport);
-
         // 2. Fetch Scored Matches from the Suggestive Matching Engine
-        const matchesResponse = await fetch(`${API_BASE_URL}/api/v1/matches/${id}`, { headers });
-        const matchesJson = await matchesResponse.json();
+        const matchesJson = await apiClient.get(`/api/v1/matches/${id}`);
 
-        if (matchesResponse.ok) {
+        if (matchesJson && matchesJson.data) {
           const suggestions = matchesJson.data.suggestions || [];
           const mappedMatches = suggestions.map(s => ({
             id: `FND-${String(s.found_report_id).padStart(4, '0')}`,
@@ -91,28 +82,17 @@ export default function LostReportDetails() {
   const handleConfirmMatch = async (foundReportId) => {
     if (!window.confirm('Are you sure you want to confirm this match? This will lock both reports as Matched.')) return;
 
-    const token = localStorage.getItem('token');
-    const headers = {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    };
-
     try {
-      const response = await fetch(`${API_BASE_URL}/api/v1/matches/${report.rawId}`, {
-        method: 'PATCH',
-        headers,
-        body: JSON.stringify({ found_report_id: foundReportId }),
+      const result = await apiClient.patch(`/api/v1/matches/${report.rawId}`, {
+        found_report_id: foundReportId,
       });
 
-      const json = await response.json();
-      if (response.ok) {
+      if (result) {
         alert('Match confirmed successfully!');
         window.location.reload();
-      } else {
-        throw new Error(json.message || 'Failed to confirm match.');
       }
     } catch (err) {
-      alert(err.message);
+      alert(err.message || 'Failed to confirm match.');
     }
   };
 

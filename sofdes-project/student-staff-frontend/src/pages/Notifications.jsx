@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { BellRing, Megaphone } from 'lucide-react';
 import { PageHeader, SectionCard, StatCard, StatusBadge } from '../components/ui';
-import { API_BASE_URL } from '../config';
+import { apiClient } from '../api/client';
 
 export default function Notifications() {
   const [notifications, setNotifications] = useState([]);
@@ -12,17 +12,11 @@ export default function Notifications() {
   const fetchNotifications = async () => {
     setLoading(true);
     setError('');
-    const token = localStorage.getItem('token');
-    const headers = {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    };
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/v1/notifications`, { headers });
-      const json = await response.json();
+      const json = await apiClient.get('/api/v1/notifications');
 
-      if (response.ok) {
+      if (json && json.data) {
         const rawNotif = json.data.notifications || [];
         const mapped = rawNotif.map((n) => ({
           id: `NOT-${String(n.notification_id).padStart(4, '0')}`,
@@ -41,8 +35,6 @@ export default function Notifications() {
           route: n.notification_type === 'Match' ? `/lost-reports/${n.related_report_id}` : '/notifications',
         }));
         setNotifications(mapped);
-      } else {
-        throw new Error(json.message || 'Failed to retrieve notifications.');
       }
     } catch (err) {
       setError(err.message || 'Error connecting to database.');
@@ -58,19 +50,10 @@ export default function Notifications() {
   const handleMarkAsRead = async (rawId, isRead) => {
     if (isRead) return;
 
-    const token = localStorage.getItem('token');
-    const headers = {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    };
-
     try {
-      const response = await fetch(`${API_BASE_URL}/api/v1/notifications/${rawId}`, {
-        method: 'PATCH',
-        headers,
-      });
+      const response = await apiClient.patch(`/api/v1/notifications/${rawId}`);
 
-      if (response.ok) {
+      if (response) {
         // Optimistically update notifications in the local state
         setNotifications((prev) =>
           prev.map((n) => (n.rawId === rawId ? { ...n, status: 'Read', is_read: true } : n))

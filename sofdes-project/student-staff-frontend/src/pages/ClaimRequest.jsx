@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { ArrowRight, FileCheck2, Loader2 } from 'lucide-react';
 import { AlertStrip, FormField, ItemThumbnail, PageHeader, SectionCard, StatusBadge, inputClasses, textareaClasses } from '../components/ui';
-import { API_BASE_URL } from '../config';
+import { apiClient } from '../api/client';
 
 export default function ClaimRequest() {
   const { foundId } = useParams();
@@ -30,24 +30,15 @@ export default function ClaimRequest() {
       console.error('Error parsing user from localStorage', e);
     }
 
-    const token = localStorage.getItem('token');
-
     // Fetch found item details if ID is present
     if (foundId) {
       const fetchFoundItem = async () => {
         setLoadingItem(true);
         setError('');
         try {
-          const response = await fetch(`${API_BASE_URL}/api/v1/found-items/${foundId}`, {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-            },
-          });
-          const json = await response.json();
-          if (response.ok) {
+          const json = await apiClient.get(`/api/v1/found-items/${foundId}`);
+          if (json && json.data) {
             setItem(json.data.report || json.data.foundItem || json.data);
-          } else {
-            throw new Error(json.message || 'Failed to fetch found item.');
           }
         } catch (err) {
           setError(err.message || 'Error loading selected item details.');
@@ -61,13 +52,8 @@ export default function ClaimRequest() {
       const fetchUnclaimedList = async () => {
         setLoadingList(true);
         try {
-          const response = await fetch(`${API_BASE_URL}/api/v1/found-items`, {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-            },
-          });
-          const json = await response.json();
-          if (response.ok) {
+          const json = await apiClient.get('/api/v1/found-items');
+          if (json && json.data) {
             const list = json.data.reports || [];
             // Allow claiming both Unclaimed and Matched items (only fully Claimed items are excluded)
             setUnclaimedItems(list.filter(item => item.status !== 'Claimed'));
@@ -92,18 +78,10 @@ export default function ClaimRequest() {
 
     setLoadingItem(true);
     setError('');
-    const token = localStorage.getItem('token');
     try {
-      const response = await fetch(`${API_BASE_URL}/api/v1/found-items/${id}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      const json = await response.json();
-      if (response.ok) {
+      const json = await apiClient.get(`/api/v1/found-items/${id}`);
+      if (json && json.data) {
         setItem(json.data.report || json.data.foundItem || json.data);
-      } else {
-        throw new Error(json.message || 'Failed to fetch found item.');
       }
     } catch (err) {
       setError(err.message || 'Error loading selected item details.');
@@ -124,28 +102,17 @@ export default function ClaimRequest() {
     setError('');
     setSuccessMsg('');
 
-    const token = localStorage.getItem('token');
     try {
-      const response = await fetch(`${API_BASE_URL}/api/v1/claims`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          found_report_id: Number(activeId),
-          proof_of_ownership: proofOfOwnership,
-        }),
+      const result = await apiClient.post('/api/v1/claims', {
+        found_report_id: Number(activeId),
+        proof_of_ownership: proofOfOwnership,
       });
 
-      const json = await response.json();
-      if (response.ok) {
+      if (result) {
         setSuccessMsg('Your claim request was successfully submitted! Redirecting to notifications...');
         setTimeout(() => {
           navigate('/notifications');
         }, 2000);
-      } else {
-        throw new Error(json.message || 'Failed to submit claim.');
       }
     } catch (err) {
       setError(err.message || 'Something went wrong while submitting your claim.');

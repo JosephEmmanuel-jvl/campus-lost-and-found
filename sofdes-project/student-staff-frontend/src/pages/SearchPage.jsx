@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { ClipboardCheck, Filter, Search, SlidersHorizontal } from 'lucide-react';
 import { categories, campusLocations } from '../data/mockData';
 import { EmptyState, ItemThumbnail, PageHeader, SectionCard, StatusBadge, inputClasses, selectClasses } from '../components/ui';
-import { API_BASE_URL } from '../config';
+import { apiClient } from '../api/client';
 
 export default function SearchPage() {
   const [keyword, setKeyword] = useState('');
@@ -18,7 +18,6 @@ export default function SearchPage() {
     const fetchResults = async () => {
       setLoading(true);
       setError('');
-      const token = localStorage.getItem('token');
       
       const params = new URLSearchParams();
       if (keyword) params.append('keyword', keyword);
@@ -26,15 +25,9 @@ export default function SearchPage() {
       if (location && location !== 'All locations') params.append('location', location);
 
       try {
-        const response = await fetch(`${API_BASE_URL}/api/v1/search?${params.toString()}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        });
-        const json = await response.json();
+        const json = await apiClient.get(`/api/v1/search?${params.toString()}`);
 
-        if (response.ok) {
+        if (json && json.data) {
           const rawResults = json.data.results || [];
           const mapped = rawResults.map(r => ({
             id: r.report_type === 'lost' ? `LST-${String(r.report_id).padStart(4, '0')}` : `FND-${String(r.report_id).padStart(4, '0')}`,
@@ -51,8 +44,6 @@ export default function SearchPage() {
             thumbnail: r.category.toLowerCase() === 'electronics' ? 'laptop' : null,
           }));
           setResults(mapped);
-        } else {
-          throw new Error(json.message || 'Failed to search records.');
         }
       } catch (err) {
         setError(err.message || 'Error connecting to search server.');

@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, Camera, Upload, X } from 'lucide-react';
 import { campusLocations, categories } from '../data/mockData';
 import { AlertStrip, FormField, PageHeader, SectionCard, inputClasses, selectClasses, textareaClasses } from '../components/ui';
-import { API_BASE_URL } from '../config';
+import { apiClient } from '../api/client';
 
 export default function ReportLostItem() {
   const navigate = useNavigate();
@@ -73,46 +73,28 @@ export default function ReportLostItem() {
     setLoading(true);
     setError('');
 
-    const token = localStorage.getItem('token');
-    if (!token) {
-      setError('You must be signed in to submit a report.');
-      setLoading(false);
-      return;
-    }
-
     // Prepare last known location by combining building and area details
     const last_known_location = `${formData.building}${formData.area ? ` - ${formData.area}` : ''}`;
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/v1/lost-items`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          item_name: formData.item_name,
-          category: formData.category,
-          date_lost: formData.date_lost,
-          keywords: formData.keywords,
-          last_known_location: last_known_location,
-          description: formData.description,
-          photo_url: formData.photo_url,
-        }),
+      const result = await apiClient.post('/api/v1/lost-items', {
+        item_name: formData.item_name,
+        category: formData.category,
+        date_lost: formData.date_lost,
+        keywords: formData.keywords,
+        last_known_location: last_known_location,
+        description: formData.description,
+        photo_url: formData.photo_url,
       });
 
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.message || 'Failed to submit the lost item report.');
-      }
-
-      // Navigate to the newly created report's details page
-      const reportId = result.data?.lost_report_id || result.data?.id;
-      if (reportId) {
-        navigate(`/lost-reports/${reportId}`);
-      } else {
-        navigate('/dashboard');
+      if (result) {
+        // Navigate to the newly created report's details page
+        const reportId = result.data?.lost_report_id || result.data?.id;
+        if (reportId) {
+          navigate(`/lost-reports/${reportId}`);
+        } else {
+          navigate('/dashboard');
+        }
       }
     } catch (err) {
       setError(err.message || 'Something went wrong. Please try again.');

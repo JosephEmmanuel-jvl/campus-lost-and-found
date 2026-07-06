@@ -4,7 +4,7 @@ import { ArrowRight, BadgeCheck, Building2, MapPin, ShieldCheck } from 'lucide-r
 import { apiClient } from '../api/client';
 
 export default function Login() {
-  const [email, setEmail] = useState('');
+  const [universityId, setUniversityId] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -12,7 +12,7 @@ export default function Login() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    if (!email || !password) {
+    if (!universityId || !password) {
       setError('Please fill in all fields.');
       return;
     }
@@ -21,7 +21,10 @@ export default function Login() {
     setError('');
 
     try {
-      const result = await apiClient.post('/api/v1/auth/login', { email, password });
+      const result = await apiClient.post('/api/v1/auth/login', {
+        university_id: universityId,
+        password,
+      });
 
       if (result && result.data) {
         // Save token and user details in localStorage
@@ -65,14 +68,14 @@ export default function Login() {
               </div>
             )}
             <label className="block">
-              <span className="text-sm font-medium text-slate-700">University email</span>
+              <span className="text-sm font-medium text-slate-700">University ID</span>
               <input
-                type="email"
-                name="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                type="text"
+                name="universityId"
+                value={universityId}
+                onChange={(e) => setUniversityId(e.target.value)}
                 className="mt-2 w-full rounded-md border border-slate-300 px-4 py-3 outline-none focus:border-campus-green focus:ring-2 focus:ring-campus-green/20"
-                placeholder="name@university.edu"
+                placeholder="2022-10001"
                 required
               />
             </label>
