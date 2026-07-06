@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Bell, IdCard, Mail, Phone, Save, ShieldCheck, UserRound } from 'lucide-react';
 import { FormField, PageHeader, SectionCard, StatCard, StatusBadge, inputClasses, selectClasses } from '../components/ui';
-import { API_BASE_URL } from '../config';
+import { apiClient } from '../api/client';
 
 export default function Profile() {
   const [user, setUser] = useState(null);
@@ -39,26 +39,18 @@ export default function Profile() {
 
     const fetchStats = async () => {
       setLoading(true);
-      const token = localStorage.getItem('token');
-      const headers = {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      };
-
       try {
         // Fetch Lost Reports to count user owned reports
-        const lostResponse = await fetch(`${API_BASE_URL}/api/v1/lost-items`, { headers });
-        const lostJson = await lostResponse.json();
-        if (lostResponse.ok) {
+        const lostJson = await apiClient.get('/api/v1/lost-items');
+        if (lostJson && lostJson.data) {
           const rawLost = lostJson.data.reports || [];
           const userLost = rawLost.filter(r => r.university_id === user.university_id);
           setReportCount(userLost.length);
         }
 
         // Fetch Notifications to count unread notifications
-        const notifResponse = await fetch(`${API_BASE_URL}/api/v1/notifications`, { headers });
-        const notifJson = await notifResponse.json();
-        if (notifResponse.ok) {
+        const notifJson = await apiClient.get('/api/v1/notifications');
+        if (notifJson && notifJson.data) {
           const rawNotif = notifJson.data.notifications || [];
           const unread = rawNotif.filter(n => !n.is_read).length;
           setUnreadCount(unread);
@@ -73,16 +65,24 @@ export default function Profile() {
     fetchStats();
   }, [user]);
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
-    setSaveSuccess(true);
-    // Persist updated phone locally in session
-    if (user) {
-      const updatedUser = { ...user, contact_number: formData.phone };
-      localStorage.setItem('user', JSON.stringify(updatedUser));
-      setUser(updatedUser);
+    try {
+      const res = await apiClient.put('/api/v1/users/profile', {
+        first_name: user.first_name,
+        last_name: user.last_name,
+        contact_number: formData.phone,
+      });
+      if (res && res.data && res.data.user) {
+        // Persist updated user details locally in session
+        localStorage.setItem('user', JSON.stringify(res.data.user));
+        setUser(res.data.user);
+        setSaveSuccess(true);
+        setTimeout(() => setSaveSuccess(false), 3000);
+      }
+    } catch (err) {
+      console.error('Error saving profile changes:', err);
     }
-    setTimeout(() => setSaveSuccess(false), 3000);
   };
 
   if (!user) {

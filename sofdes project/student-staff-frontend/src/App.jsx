@@ -12,7 +12,7 @@ import {
   UserRound,
 } from 'lucide-react';
 
-import { API_BASE_URL } from './config';
+import { apiClient } from './api/client';
 
 const allNavItems = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -37,22 +37,29 @@ export default function AppShell() {
     role = '';
   }
 
+  // Validate token on mount
+  useEffect(() => {
+    const validateToken = async () => {
+      try {
+        await apiClient.get('/api/v1/auth/me');
+      } catch (e) {
+        console.error('Session validation failed', e);
+      }
+    };
+    validateToken();
+  }, []);
+
   // Fetch unread notifications count
   useEffect(() => {
     const fetchUnread = async () => {
-      const token = localStorage.getItem('token');
-      if (!token) return;
       try {
-        const res = await fetch(`${API_BASE_URL}/api/v1/notifications`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const data = await res.json();
-        if (res.ok && data.data && Array.isArray(data.data.notifications)) {
+        const data = await apiClient.get('/api/v1/notifications');
+        if (data && data.data && Array.isArray(data.data.notifications)) {
           const count = data.data.notifications.filter((n) => !n.is_read).length;
           setUnreadCount(count);
         }
       } catch (e) {
-        console.error('Failed to fetch notifications', e);
+        console.error('Failed to fetch notifications count', e);
       }
     };
     fetchUnread();
@@ -69,7 +76,12 @@ export default function AppShell() {
     return true;
   });
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await apiClient.post('/api/v1/auth/logout');
+    } catch (e) {
+      console.error('Logout request failed', e);
+    }
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     navigate('/');

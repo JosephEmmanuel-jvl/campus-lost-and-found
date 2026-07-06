@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, BadgeCheck, Building2, MapPin, ShieldCheck } from 'lucide-react';
-import { API_BASE_URL } from '../config';
+import { apiClient } from '../api/client';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -21,26 +21,16 @@ export default function Login() {
     setError('');
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
+      const result = await apiClient.post('/api/v1/auth/login', { email, password });
 
-      const result = await response.json();
+      if (result && result.data) {
+        // Save token and user details in localStorage
+        localStorage.setItem('token', result.data.token);
+        localStorage.setItem('user', JSON.stringify(result.data.user));
 
-      if (!response.ok) {
-        throw new Error(result.message || 'Invalid email or password.');
+        // Navigate to dashboard after successful login
+        navigate('/dashboard');
       }
-
-      // Save token and user details in localStorage
-      localStorage.setItem('token', result.data.token);
-      localStorage.setItem('user', JSON.stringify(result.data.user));
-
-      // Navigate to dashboard after successful login
-      navigate('/dashboard');
     } catch (err) {
       setError(err.message || 'Something went wrong. Please try again.');
     } finally {

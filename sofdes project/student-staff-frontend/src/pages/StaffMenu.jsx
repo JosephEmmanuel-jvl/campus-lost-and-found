@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ClipboardCheck, PackageOpen, Search, ShieldCheck, Check, X, Loader2 } from 'lucide-react';
 import { PageHeader, PrimaryLink, SectionCard, StatCard, StatusBadge } from '../components/ui';
-import { API_BASE_URL } from '../config';
+import { apiClient } from '../api/client';
 
 export default function StaffMenu() {
   const [stats, setStats] = useState({
@@ -38,39 +38,24 @@ export default function StaffMenu() {
   const fetchData = async () => {
     setLoading(true);
     setError('');
-    const token = localStorage.getItem('token');
-    if (!token) {
-      setError('Admin access requires an active session token.');
-      setLoading(false);
-      return;
-    }
 
     try {
       // 1. Fetch dashboard statistics
-      const statsRes = await fetch(`${API_BASE_URL}/api/v1/admin/dashboard`, {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-      const statsJson = await statsRes.json();
-      if (statsRes.ok) {
+      const statsJson = await apiClient.get('/api/v1/admin/dashboard');
+      if (statsJson && statsJson.data) {
         setStats(statsJson.data.statistics);
       }
 
       // 2. Fetch all reports for the intake list
-      const reportsRes = await fetch(`${API_BASE_URL}/api/v1/admin/reports`, {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-      const reportsJson = await reportsRes.json();
-      if (reportsRes.ok) {
+      const reportsJson = await apiClient.get('/api/v1/admin/reports');
+      if (reportsJson && reportsJson.data) {
         setFoundItems(reportsJson.data.found_reports || []);
         setLostReports(reportsJson.data.lost_reports || []);
       }
 
       // 3. Fetch all claim requests (pending or all)
-      const claimsRes = await fetch(`${API_BASE_URL}/api/v1/admin/claims`, {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-      const claimsJson = await claimsRes.json();
-      if (claimsRes.ok) {
+      const claimsJson = await apiClient.get('/api/v1/admin/claims');
+      if (claimsJson && claimsJson.data) {
         setClaims(claimsJson.data.claims || []);
       }
     } catch (err) {
@@ -87,26 +72,17 @@ export default function StaffMenu() {
   const handleApprove = async (claimId) => {
     if (!window.confirm('Are you sure you want to approve this claim? This will resolve the item.')) return;
     setProcessingId(claimId);
-    const token = localStorage.getItem('token');
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/v1/claims/${claimId}/approve`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({ admin_remarks: 'Verified ownership at campus safety desk.' }),
+      const result = await apiClient.patch(`/api/v1/claims/${claimId}/approve`, {
+        admin_remarks: 'Verified ownership at campus safety desk.',
       });
-      const result = await response.json();
-      if (response.ok) {
+      if (result) {
         alert('Claim approved successfully.');
         fetchData();
-      } else {
-        throw new Error(result.message || 'Approval failed.');
       }
     } catch (err) {
-      alert(err.message);
+      alert(err.message || 'Approval failed.');
     } finally {
       setProcessingId(null);
     }
@@ -120,28 +96,19 @@ export default function StaffMenu() {
     }
 
     setProcessingId(rejectId);
-    const token = localStorage.getItem('token');
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/v1/claims/${rejectId}/reject`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({ admin_remarks: remarks }),
+      const result = await apiClient.patch(`/api/v1/claims/${rejectId}/reject`, {
+        admin_remarks: remarks,
       });
-      const result = await response.json();
-      if (response.ok) {
+      if (result) {
         alert('Claim rejected.');
         setRejectId(null);
         setRemarks('');
         fetchData();
-      } else {
-        throw new Error(result.message || 'Rejection failed.');
       }
     } catch (err) {
-      alert(err.message);
+      alert(err.message || 'Rejection failed.');
     } finally {
       setProcessingId(null);
     }

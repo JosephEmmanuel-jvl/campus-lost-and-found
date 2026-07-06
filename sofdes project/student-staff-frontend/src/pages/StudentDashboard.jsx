@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Bell, ClipboardCheck, FilePlus2, PackageOpen, Search } from 'lucide-react';
 import { PageHeader, PrimaryLink, SectionCard, StatCard, StatusBadge } from '../components/ui';
-import { API_BASE_URL } from '../config';
+import { apiClient } from '../api/client';
 
 export default function StudentDashboard() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -28,26 +28,18 @@ export default function StudentDashboard() {
     const fetchData = async () => {
       setLoading(true);
       setError('');
-      const token = localStorage.getItem('token');
-      const headers = {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      };
 
       try {
         // 1. Fetch Lost Reports
-        const lostResponse = await fetch(`${API_BASE_URL}/api/v1/lost-items`, { headers });
-        const lostJson = await lostResponse.json();
+        const lostJson = await apiClient.get('/api/v1/lost-items');
         
         // 2. Fetch Found Reports
-        const foundResponse = await fetch(`${API_BASE_URL}/api/v1/found-items`, { headers });
-        const foundJson = await foundResponse.json();
+        const foundJson = await apiClient.get('/api/v1/found-items');
 
         // 3. Fetch Notifications
-        const notifResponse = await fetch(`${API_BASE_URL}/api/v1/notifications`, { headers });
-        const notifJson = await notifResponse.json();
+        const notifJson = await apiClient.get('/api/v1/notifications');
 
-        if (lostResponse.ok && foundResponse.ok && notifResponse.ok) {
+        if (lostJson && foundJson && notifJson) {
           // Map lost reports to UI format
           const rawLost = lostJson.data.reports || [];
           // Filter to only this user's lost reports
