@@ -163,7 +163,7 @@ export default function ClaimRequest() {
           
           {!loadingItem && item && (
             <>
-              <ItemThumbnail type={item.category?.toLowerCase() === 'electronics' ? 'laptop' : null} />
+              <ItemThumbnail category={item.category} photoUrl={item.photo_url} />
               <div className="mt-5 space-y-3">
                 <div className="flex items-start justify-between gap-3">
                   <div>

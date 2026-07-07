@@ -38,7 +38,7 @@ const search = asyncHandler(async (req, res) => {
   const [lostRows] = await pool.execute(
     `SELECT lost_report_id AS report_id, item_name, description, category, keywords,
             last_known_location AS location, date_lost AS date, status, created_at,
-            'lost' AS report_type
+            'lost' AS report_type, photo_url
        FROM lost_item_report ${lostQ.where}
       ORDER BY created_at DESC`,
     lostQ.params
@@ -47,7 +47,7 @@ const search = asyncHandler(async (req, res) => {
   const [foundRows] = await pool.execute(
     `SELECT found_report_id AS report_id, item_name, description, category, keywords,
             location_found AS location, date_found AS date, status, created_at,
-            'found' AS report_type
+            'found' AS report_type, photo_url
        FROM found_item_report ${foundQ.where}
       ORDER BY created_at DESC`,
     foundQ.params

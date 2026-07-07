@@ -37,11 +37,15 @@ export default function AppShell() {
     role = '';
   }
 
-  // Validate token on mount
+  // Validate token on mount and sync user details
   useEffect(() => {
     const validateToken = async () => {
       try {
-        await apiClient.get('/api/v1/auth/me');
+        const response = await apiClient.get('/api/v1/auth/me');
+        if (response && response.data && response.data.user) {
+          localStorage.setItem('user', JSON.stringify(response.data.user));
+          window.dispatchEvent(new Event('userUpdated'));
+        }
       } catch (e) {
         console.error('Session validation failed', e);
       }
@@ -63,8 +67,13 @@ export default function AppShell() {
       }
     };
     fetchUnread();
+    
+    window.addEventListener('notificationsUpdated', fetchUnread);
     const interval = setInterval(fetchUnread, 60000); // refresh every minute
-    return () => clearInterval(interval);
+    return () => {
+      window.removeEventListener('notificationsUpdated', fetchUnread);
+      clearInterval(interval);
+    };
   }, []);
 
 

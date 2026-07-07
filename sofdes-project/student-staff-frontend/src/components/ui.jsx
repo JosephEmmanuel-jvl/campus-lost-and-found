@@ -93,16 +93,39 @@ export function StatCard({ label, value, icon: Icon, tone = 'green', detail }) {
   );
 }
 
-export function ItemThumbnail({ type = 'laptop', className = '' }) {
-  const item = thumbnailMap[type] || thumbnailMap.laptop;
+const categoryMap = {
+  electronics: 'laptop',
+  gadgets: 'laptop',
+  'personal belongings': 'bottle',
+  clothing: 'headphones',
+  documents: 'id',
+  others: 'ring',
+};
+
+export function ItemThumbnail({ type = 'laptop', category, photoUrl, className = '' }) {
+  const normalizedCategory = (category || '').toLowerCase().trim();
+  const categoryKey = categoryMap[normalizedCategory] || type || 'laptop';
+  const item = thumbnailMap[categoryKey] || thumbnailMap.laptop;
+  const labelText = category || item.label;
+
   return (
     <div className={`relative flex min-h-40 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br ${item.bg} ${className}`}>
-      <div className="absolute inset-4 rounded-md border border-white/30 bg-white/10" />
-      <div className="relative flex h-20 w-20 items-center justify-center rounded-full bg-white/90 text-campus-ink shadow-soft">
-        <item.Icon className="h-10 w-10" />
-      </div>
+      {photoUrl ? (
+        <img 
+          src={photoUrl} 
+          alt={labelText} 
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+      ) : (
+        <>
+          <div className="absolute inset-4 rounded-md border border-white/30 bg-white/10" />
+          <div className="relative flex h-20 w-20 items-center justify-center rounded-full bg-white/90 text-campus-ink shadow-soft">
+            <item.Icon className="h-10 w-10" />
+          </div>
+        </>
+      )}
       <span className="absolute bottom-3 left-3 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-campus-ink">
-        {item.label}
+        {labelText}
       </span>
     </div>
   );

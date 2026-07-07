@@ -88,7 +88,12 @@ export default function StudentDashboard() {
               minute: '2-digit'
             }),
             status: n.is_read ? 'Read' : 'Unread',
-            route: n.notification_type === 'Match' ? `/lost-reports/${n.related_report_id}` : '/notifications',
+            is_read: n.is_read,
+            route: n.notification_type === 'Match' 
+              ? `/lost-reports/${n.related_report_id}` 
+              : (n.notification_type === 'Claim' && n.related_report_id 
+                  ? `/claim/${n.related_report_id}` 
+                  : '/notifications'),
           }));
           setNotifications(mappedNotif);
         } else {
@@ -103,6 +108,19 @@ export default function StudentDashboard() {
 
     fetchData();
   }, [currentUser]);
+
+  const handleMarkAsRead = async (rawId, isRead) => {
+    if (isRead) return;
+    try {
+      await apiClient.patch(`/api/v1/notifications/${rawId}`);
+      setNotifications((prev) =>
+        prev.map((n) => (n.rawId === rawId ? { ...n, status: 'Read', is_read: true } : n))
+      );
+      window.dispatchEvent(new Event('notificationsUpdated'));
+    } catch (err) {
+      console.error('Failed to mark notification as read:', err);
+    }
+  };
 
   if (loading) {
     return (
@@ -189,7 +207,12 @@ export default function StudentDashboard() {
               <p className="py-6 text-center text-sm text-slate-500">No notifications.</p>
             ) : (
               notifications.slice(0, 3).map((note) => (
-                <Link key={note.rawId} to={note.route} className="block rounded-md border border-slate-200 p-4 hover:border-campus-green/40 hover:bg-campus-mist/50">
+                <Link 
+                  key={note.rawId} 
+                  to={note.route} 
+                  onClick={() => handleMarkAsRead(note.rawId, note.is_read)}
+                  className="block rounded-md border border-slate-200 p-4 hover:border-campus-green/40 hover:bg-campus-mist/50"
+                >
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <p className="font-semibold text-campus-ink">{note.title}</p>

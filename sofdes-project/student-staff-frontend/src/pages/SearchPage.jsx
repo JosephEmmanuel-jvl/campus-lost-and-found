@@ -41,7 +41,7 @@ export default function SearchPage() {
             description: r.description,
             route: r.report_type === 'lost' ? `/lost-reports/${r.report_id}` : `/claim/${r.report_id}`,
             actionLabel: r.report_type === 'lost' ? 'View report' : 'Start claim',
-            thumbnail: r.category.toLowerCase() === 'electronics' ? 'laptop' : null,
+            photoUrl: r.photo_url,
           }));
           setResults(mapped);
         }
@@ -125,13 +125,7 @@ export default function SearchPage() {
             {filteredResults.map((row) => (
               <article key={`${row.type}-${row.rawId}`} className="rounded-lg border border-slate-200 p-4">
                 <div className="grid gap-4 sm:grid-cols-[140px_1fr]">
-                  {row.thumbnail ? (
-                    <ItemThumbnail type={row.thumbnail} className="min-h-32" />
-                  ) : (
-                    <div className="flex min-h-32 items-center justify-center rounded-lg bg-slate-100 text-campus-green">
-                      <SlidersHorizontal className="h-8 w-8" />
-                    </div>
-                  )}
+                  <ItemThumbnail category={row.category} photoUrl={row.photoUrl} className="min-h-32" />
                   <div className="space-y-3">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div>

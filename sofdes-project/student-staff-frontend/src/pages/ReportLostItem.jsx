@@ -89,7 +89,7 @@ export default function ReportLostItem() {
 
       if (result) {
         // Navigate to the newly created report's details page
-        const reportId = result.data?.lost_report_id || result.data?.id;
+        const reportId = result.data?.report?.lost_report_id || result.data?.lost_report_id || result.data?.id;
         if (reportId) {
           navigate(`/lost-reports/${reportId}`);
         } else {

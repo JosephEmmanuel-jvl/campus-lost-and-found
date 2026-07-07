@@ -63,7 +63,7 @@ export default function LostReportDetails() {
             location: s.location_found,
             foundDate: s.date_found,
             status: s.status === 'Unclaimed' ? 'Available' : s.status,
-            thumbnail: s.category.toLowerCase() === 'electronics' ? 'laptop' : null,
+            photoUrl: s.photo_url,
             description: s.description,
             score: s.match_score
           }));
@@ -176,7 +176,7 @@ export default function LostReportDetails() {
                 {matches.map((item) => (
                   <article key={item.rawId} className="rounded-lg border border-slate-200 p-4 flex flex-col justify-between">
                     <div>
-                      <ItemThumbnail type={item.thumbnail} className="min-h-36" />
+                      <ItemThumbnail category={item.category} photoUrl={item.photoUrl} className="min-h-36" />
                       <div className="mt-4 flex items-start justify-between gap-3">
                         <div>
                           <p className="font-semibold text-campus-ink">{item.title}</p>

@@ -32,7 +32,11 @@ export default function Notifications() {
           }),
           status: n.is_read ? 'Read' : 'Unread',
           is_read: n.is_read,
-          route: n.notification_type === 'Match' ? `/lost-reports/${n.related_report_id}` : '/notifications',
+          route: n.notification_type === 'Match' 
+            ? `/lost-reports/${n.related_report_id}` 
+            : (n.notification_type === 'Claim' && n.related_report_id 
+                ? `/claim/${n.related_report_id}` 
+                : '/notifications'),
         }));
         setNotifications(mapped);
       }
