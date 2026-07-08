@@ -20,7 +20,9 @@ export default function ClaimRequest() {
   })();
 
   const userRole = currentUser?.role || currentUserFromStorage?.role || '';
-  const isStaffOrAdmin = userRole === 'Admin' || userRole === 'Staff';
+  const isStaff = userRole === 'Staff';
+  const isAdmin = userRole === 'Admin';
+  const isStaffOrAdmin = isAdmin || isStaff;
   const isViewOnly = queryParams.get('mode') !== 'claim' || isStaffOrAdmin;
 
   const [proofOfOwnership, setProofOfOwnership] = useState('');
@@ -306,13 +308,13 @@ export default function ClaimRequest() {
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Ownership verification"
-        title="Claim Request"
-        description="Submit identifying details for staff review before pickup approval."
+        eyebrow={isViewOnly ? "Found Item" : "Ownership verification"}
+        title={isViewOnly ? "Found Item Details" : "Claim Request"}
+        description={isViewOnly ? "Detailed information about the found item reported on campus." : "Submit identifying details for staff review before pickup approval."}
       />
 
       <div className="grid gap-6 xl:grid-cols-[380px_1fr]">
-        <SectionCard title="Selected found item">
+        <SectionCard title={isViewOnly ? "Found Item Details" : "Selected found item"}>
           {!foundId && (
             <div className="mb-5">
               <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Select found item to claim</label>
@@ -378,8 +380,8 @@ export default function ClaimRequest() {
         </SectionCard>
 
         <div className="space-y-6">
-          {isStaffOrAdmin ? (
-            /* Staff / Admin View: Review all claims for this item */
+          {isStaff ? (
+            /* Staff View: Review all claims for this item */
             <SectionCard title="Verify Claim Requests" subtitle="Review proof of ownership submitted by claimants">
               {rejectClaimId && (
                 <div className="rounded-lg border border-red-300 bg-red-50/50 p-5 mb-5">
