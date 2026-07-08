@@ -21,12 +21,12 @@ const search = asyncHandler(async (req, res) => {
     const clauses = [];
     const params = [];
     if (keyword) {
-      clauses.push('(item_name LIKE ? OR description LIKE ? OR keywords LIKE ?)');
+      clauses.push('(item_name ILIKE ? OR description ILIKE ? OR keywords ILIKE ?)');
       const like = `%${keyword}%`;
       params.push(like, like, like);
     }
     if (category) { clauses.push('category = ?'); params.push(category); }
-    if (location) { clauses.push(`${locationCol} LIKE ?`); params.push(`%${location}%`); }
+    if (location) { clauses.push(`${locationCol} ILIKE ?`); params.push(`%${location}%`); }
     if (date) { clauses.push(`${dateCol} = ?`); params.push(date); }
     const where = clauses.length ? `WHERE ${clauses.join(' AND ')}` : '';
     return { where, params };
