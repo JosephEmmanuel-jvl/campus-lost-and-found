@@ -60,7 +60,7 @@ CREATE TABLE lost_item_report (
                                 'Others'
                             )),
     keywords                TEXT          NOT NULL,
-    photo_url               VARCHAR(255)  NULL,
+    photo_url               TEXT          NULL,
     last_known_location     VARCHAR(200)  NOT NULL,
     date_lost               DATE          NOT NULL,
     status                  VARCHAR(50)   NOT NULL DEFAULT 'Pending' CHECK (status IN ('Pending', 'Matched', 'Claimed')),
@@ -95,7 +95,7 @@ CREATE TABLE found_item_report (
                                 'Others'
                             )),
     keywords               TEXT          NOT NULL,
-    photo_url              VARCHAR(255)  NULL,
+    photo_url              TEXT          NULL,
     location_found         VARCHAR(200)  NOT NULL,
     date_found             DATE          NOT NULL,
     status                 VARCHAR(50)   NOT NULL DEFAULT 'Unclaimed' CHECK (status IN ('Unclaimed', 'Matched', 'Claimed')),

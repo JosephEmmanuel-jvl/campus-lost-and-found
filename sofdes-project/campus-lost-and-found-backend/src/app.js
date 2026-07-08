@@ -33,6 +33,15 @@ app.use(async (req, res, next) => {
       const { initializeDatabase, ensureMockUsersExist } = require('./config/initDb');
       await initializeDatabase(pool);
       await ensureMockUsersExist(pool);
+
+      // Ensure photo_url can store base64 data URLs
+      try {
+        await pool.query('ALTER TABLE lost_item_report ALTER COLUMN photo_url TYPE TEXT');
+        await pool.query('ALTER TABLE found_item_report ALTER COLUMN photo_url TYPE TEXT');
+      } catch (migrationErr) {
+        console.error('[Vercel DB Migration Error]', migrationErr);
+      }
+
       dbInitialized = true;
     } catch (err) {
       console.error('[Vercel DB Init Error]', err);
