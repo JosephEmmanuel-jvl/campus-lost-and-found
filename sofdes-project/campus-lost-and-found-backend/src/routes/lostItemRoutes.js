@@ -16,7 +16,7 @@ const createRules = {
   keywords: { required: true, type: 'string', minLength: 1 },
   last_known_location: { required: true, type: 'string', maxLength: 200 },
   date_lost: { required: true, type: 'date' },
-  photo_url: { required: false, type: 'string', maxLength: 255 },
+  photo_url: { required: false, type: 'string' },
 };
 
 router.get('/', authenticate, getAll);
