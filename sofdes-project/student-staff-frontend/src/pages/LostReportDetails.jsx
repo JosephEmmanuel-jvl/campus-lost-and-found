@@ -201,7 +201,14 @@ export default function LostReportDetails() {
                       <p className="mt-3 text-sm leading-6 text-slate-600">{item.description}</p>
                     </div>
                     <div className="mt-4 pt-2 border-t border-slate-100 flex gap-2">
-                      {role === 'Admin' ? (
+                      {role === 'Admin' && report.status === 'Pending' && item.status === 'Available' ? (
+                        <button
+                          onClick={() => handleConfirmMatch(item.rawId)}
+                          className="w-full inline-flex items-center justify-center gap-2 rounded bg-campus-green py-2 text-sm font-semibold text-white hover:bg-teal-800"
+                        >
+                          Confirm Match
+                        </button>
+                      ) : role === 'Admin' ? (
                         <PrimaryLink to={`/claim/${item.rawId}?mode=view`}>View report</PrimaryLink>
                       ) : (
                         <PrimaryLink to={`/claim/${item.rawId}?mode=claim`} icon={ClipboardCheck}>Start claim</PrimaryLink>
