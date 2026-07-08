@@ -45,22 +45,8 @@ export default function SearchPage() {
           const rawResults = json.data.results || [];
           const mapped = rawResults.map(r => {
             const isLost = r.report_type === 'lost';
-            let actionLabel = '';
-            let route = '';
-            
-            if (role === 'Admin') {
-              actionLabel = 'View report';
-              route = isLost ? `/lost-reports/${r.report_id}` : `/claim/${r.report_id}?mode=view`;
-            } else {
-              // Staff or Student
-              if (isLost) {
-                actionLabel = 'Start claim';
-                route = `/lost-reports/${r.report_id}`;
-              } else {
-                actionLabel = 'View report';
-                route = `/claim/${r.report_id}?mode=view`;
-              }
-            }
+            const actionLabel = 'View report';
+            const route = isLost ? `/lost-reports/${r.report_id}` : `/claim/${r.report_id}?mode=view`;
 
             return {
               id: isLost ? `LST-${String(r.report_id).padStart(4, '0')}` : `FND-${String(r.report_id).padStart(4, '0')}`,
