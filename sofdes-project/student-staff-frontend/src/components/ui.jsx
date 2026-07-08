@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { API_BASE_URL } from '../config';
 import {
   BookOpen,
   CheckCircle2,
@@ -108,11 +109,15 @@ export function ItemThumbnail({ type = 'laptop', category, photoUrl, className =
   const item = thumbnailMap[categoryKey] || thumbnailMap.laptop;
   const labelText = category || item.label;
 
+  const fullPhotoUrl = photoUrl && photoUrl.startsWith('/') && !photoUrl.startsWith('//')
+    ? `${API_BASE_URL}${photoUrl}`
+    : photoUrl;
+
   return (
     <div className={`relative flex min-h-40 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br ${item.bg} ${className}`}>
       {photoUrl ? (
         <img 
-          src={photoUrl} 
+          src={fullPhotoUrl} 
           alt={labelText} 
           className="absolute inset-0 h-full w-full object-cover"
         />

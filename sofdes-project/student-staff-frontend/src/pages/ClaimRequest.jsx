@@ -15,6 +15,21 @@ export default function ClaimRequest() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+  const [photoFile, setPhotoFile] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState(null);
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setPhotoFile(file);
+      setPhotoPreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleRemovePhoto = () => {
+    setPhotoFile(null);
+    setPhotoPreview(null);
+  };
 
   // Dropdown states if no ID in path
   const [unclaimedItems, setUnclaimedItems] = useState([]);
@@ -48,6 +63,7 @@ export default function ClaimRequest() {
         } catch (err) {
           setError(err.message || 'Error loading selected item details.');
         } finally {
+          setItem(null);
           setLoadingItem(false);
         }
       };
@@ -108,9 +124,24 @@ export default function ClaimRequest() {
     setSuccessMsg('');
 
     try {
+      let finalProof = proofOfOwnership;
+      if (photoFile) {
+        const base64 = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.readAsDataURL(photoFile);
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = (err) => reject(err);
+        });
+        const uploadRes = await apiClient.post('/api/v1/upload', { file: base64 });
+        const photo_url = uploadRes?.data?.data?.url || '';
+        if (photo_url) {
+          finalProof = `${proofOfOwnership}\n\n[Evidence Image: ${photo_url}]`;
+        }
+      }
+
       const result = await apiClient.post('/api/v1/claims', {
         found_report_id: Number(activeId),
-        proof_of_ownership: proofOfOwnership,
+        proof_of_ownership: finalProof,
       });
 
       if (result) {
@@ -255,13 +286,41 @@ export default function ClaimRequest() {
               </FormField>
 
               <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-                <div className="flex items-center gap-3">
-                  <FileCheck2 className="h-5 w-5 text-campus-green" />
-                  <div>
-                    <p className="font-semibold text-campus-ink">Supporting evidence</p>
-                    <p className="text-sm text-slate-500">Manual verification happens securely at pickup.</p>
+                <input
+                  type="file"
+                  id="claim-photo-upload"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+                {photoFile ? (
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      {photoPreview && (
+                        <img src={photoPreview} alt="Preview" className="h-10 w-10 rounded object-cover border border-slate-200" />
+                      )}
+                      <div>
+                        <p className="font-semibold text-campus-ink text-sm truncate max-w-[150px]">{photoFile.name}</p>
+                        <p className="text-xs text-slate-500">{(photoFile.size / 1024).toFixed(1)} KB</p>
+                      </div>
+                    </div>
+                    <button 
+                      type="button" 
+                      onClick={handleRemovePhoto}
+                      className="text-xs font-semibold text-red-600 hover:text-red-800"
+                    >
+                      Remove
+                    </button>
                   </div>
-                </div>
+                ) : (
+                  <button type="button" onClick={() => document.getElementById('claim-photo-upload').click()} className="flex items-center gap-2 text-campus-green hover:text-campus-ink">
+                    <FileCheck2 className="h-5 w-5 text-campus-green" />
+                    <div className="text-left">
+                      <p className="font-semibold text-campus-ink">Attach supporting photo evidence (optional)</p>
+                      <p className="text-xs text-slate-500">Upload a receipt, photo of the item, or other ownership proof</p>
+                    </div>
+                  </button>
+                )}
               </div>
 
               <div className="flex flex-col gap-3 border-t border-slate-200 pt-5 sm:flex-row sm:justify-end">

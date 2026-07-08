@@ -51,6 +51,7 @@ export default function LostReportDetails() {
             lastSeen: r.description, // detailed description serves as area details
             priority: r.status === 'Matched' ? 'High' : 'Normal',
             status: r.status,
+            photoUrl: r.photo_url,
             created_at: r.created_at
           };
           setReport(mappedReport);
@@ -158,6 +159,11 @@ export default function LostReportDetails() {
       <div className="grid gap-6 xl:grid-cols-[1fr_360px]">
         <div className="space-y-6">
           <SectionCard title="Report information">
+            {report.photoUrl && (
+              <div className="mb-5 max-w-md">
+                <ItemThumbnail category={report.category} photoUrl={report.photoUrl} className="min-h-48" />
+              </div>
+            )}
             <dl className="grid gap-4 md:grid-cols-2">
               {[
                 ['Owner', report.owner],

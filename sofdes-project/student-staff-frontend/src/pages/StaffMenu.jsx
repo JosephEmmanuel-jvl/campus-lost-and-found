@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ClipboardCheck, PackageOpen, Search, ShieldCheck, Check, X, Loader2 } from 'lucide-react';
 import { PageHeader, PrimaryLink, SectionCard, StatCard, StatusBadge, ItemThumbnail } from '../components/ui';
 import { apiClient } from '../api/client';
+import { API_BASE_URL } from '../config';
 
 export default function StaffMenu() {
   const [stats, setStats] = useState({
@@ -209,10 +210,34 @@ export default function StaffMenu() {
                             <StatusBadge value={claim.status} />
                           </div>
                           
-                          <div className="bg-slate-50 p-3 rounded text-sm text-slate-700 border border-slate-100">
-                            <span className="font-semibold block text-xs text-slate-500 mb-1">PROOF OF OWNERSHIP:</span>
-                            {claim.proof_of_ownership}
-                          </div>
+                          {(() => {
+                            let text = claim.proof_of_ownership || '';
+                            let evidenceImg = '';
+                            const match = text.match(/\[Evidence Image:\s*([^\]]+)\]/);
+                            if (match) {
+                              evidenceImg = match[1];
+                              text = text.replace(/\[Evidence Image:\s*[^\]]+\]/, '').trim();
+                            }
+                            return (
+                              <div className="space-y-3">
+                                <div className="bg-slate-50 p-3 rounded text-sm text-slate-700 border border-slate-100">
+                                  <span className="font-semibold block text-xs text-slate-500 mb-1">PROOF OF OWNERSHIP:</span>
+                                  {text}
+                                </div>
+                                {evidenceImg && (
+                                  <div className="mt-2">
+                                    <span className="font-semibold block text-xs text-slate-500 mb-1">SUPPORTING EVIDENCE IMAGE:</span>
+                                    <img
+                                      src={evidenceImg.startsWith('/') && !evidenceImg.startsWith('//') ? `${API_BASE_URL}${evidenceImg}` : evidenceImg}
+                                      alt="Evidence"
+                                      className="max-h-48 rounded-md border border-slate-200 object-contain bg-slate-50 p-1"
+                                      onError={(e) => { e.target.style.display = 'none'; }}
+                                    />
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })()}
                         </div>
                       </div>
 

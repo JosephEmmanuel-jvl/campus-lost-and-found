@@ -57,16 +57,6 @@ export default function ReportLostItem() {
     if (file) {
       setPhotoFile(file);
       setPhotoPreview(URL.createObjectURL(file));
-      const categoryImages = {
-        'Electronics': 'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=500',
-        'Personal Belongings': 'https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=500',
-        'Documents': 'https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=500',
-        'Books': 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=500',
-        'Clothing': 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=500',
-        'Others': 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=500',
-      };
-      const mockUrl = categoryImages[formData.category] || 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=500';
-      setFormData(prev => ({ ...prev, photo_url: mockUrl }));
     }
   };
 
@@ -85,6 +75,18 @@ export default function ReportLostItem() {
     const last_known_location = `${formData.building}${formData.area ? ` - ${formData.area}` : ''}`;
 
     try {
+      let photo_url = '';
+      if (photoFile) {
+        const base64 = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.readAsDataURL(photoFile);
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = (err) => reject(err);
+        });
+        const uploadRes = await apiClient.post('/api/v1/upload', { file: base64 });
+        photo_url = uploadRes?.data?.data?.url || '';
+      }
+
       const result = await apiClient.post('/api/v1/lost-items', {
         item_name: formData.item_name,
         category: formData.category,
@@ -92,7 +94,7 @@ export default function ReportLostItem() {
         keywords: formData.keywords,
         last_known_location: last_known_location,
         description: formData.description,
-        photo_url: formData.photo_url,
+        photo_url: photo_url,
       });
 
       if (result) {
