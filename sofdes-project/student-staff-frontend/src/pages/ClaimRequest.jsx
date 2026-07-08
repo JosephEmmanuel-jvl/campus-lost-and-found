@@ -22,13 +22,18 @@ export default function ClaimRequest() {
   const [loadingList, setLoadingList] = useState(false);
 
   useEffect(() => {
-    // Parse user profile
-    try {
-      const user = JSON.parse(localStorage.getItem('user'));
-      setCurrentUser(user);
-    } catch (e) {
-      console.error('Error parsing user from localStorage', e);
-    }
+    const loadUser = async () => {
+      try {
+        const response = await apiClient.get('/api/v1/auth/me');
+        if (response && response.data && response.data.user) {
+          setCurrentUser(response.data.user);
+          localStorage.setItem('user', JSON.stringify(response.data.user));
+        }
+      } catch (err) {
+        console.error('Failed to load user profile from DB:', err);
+      }
+    };
+    loadUser();
 
     // Fetch found item details if ID is present
     if (foundId) {

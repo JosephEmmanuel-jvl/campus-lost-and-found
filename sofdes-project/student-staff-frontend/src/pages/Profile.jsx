@@ -21,23 +21,27 @@ export default function Profile() {
   const [saveSuccess, setSaveSuccess] = useState(false);
 
   useEffect(() => {
-    // Load logged-in user from localStorage
-    try {
-      const sessionUser = JSON.parse(localStorage.getItem('user'));
-      if (sessionUser) {
-        setUser(sessionUser);
-        setFormData(prev => ({
-          ...prev,
-          firstName: sessionUser.first_name || '',
-          lastName: sessionUser.last_name || '',
-          email: sessionUser.email || '',
-          phone: sessionUser.contact_number || '',
-          year: sessionUser.role === 'Student' ? '3rd Year' : 'Staff',
-        }));
+    const loadUser = async () => {
+      try {
+        const response = await apiClient.get('/api/v1/auth/me');
+        if (response && response.data && response.data.user) {
+          const u = response.data.user;
+          setUser(u);
+          setFormData(prev => ({
+            ...prev,
+            firstName: u.first_name || '',
+            lastName: u.last_name || '',
+            email: u.email || '',
+            phone: u.contact_number || '',
+            year: u.role === 'Student' ? '3rd Year' : 'Staff',
+          }));
+          localStorage.setItem('user', JSON.stringify(u));
+        }
+      } catch (err) {
+        console.error('Failed to load user profile from DB:', err);
       }
-    } catch (err) {
-      console.error('Failed to load user profile from session:', err);
-    }
+    };
+    loadUser();
   }, []);
 
   useEffect(() => {

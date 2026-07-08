@@ -23,17 +23,25 @@ export default function ReportLostItem() {
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
 
-  const [currentUser, setCurrentUser] = useState(null);
+  const [currentUser, setCurrentUser] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('user')); } catch { return null; }
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    try {
-      const user = JSON.parse(localStorage.getItem('user'));
-      setCurrentUser(user);
-    } catch (e) {
-      console.error('Error parsing user from localStorage', e);
-    }
+    const loadUser = async () => {
+      try {
+        const response = await apiClient.get('/api/v1/auth/me');
+        if (response?.data?.user) {
+          setCurrentUser(response.data.user);
+          localStorage.setItem('user', JSON.stringify(response.data.user));
+        }
+      } catch (e) {
+        console.error('Failed to load user profile from DB', e);
+      }
+    };
+    loadUser();
   }, []);
 
   const handleChange = (e) => {

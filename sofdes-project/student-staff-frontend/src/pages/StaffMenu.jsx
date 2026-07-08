@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ClipboardCheck, PackageOpen, Search, ShieldCheck, Check, X, Loader2 } from 'lucide-react';
-import { PageHeader, PrimaryLink, SectionCard, StatCard, StatusBadge } from '../components/ui';
+import { PageHeader, PrimaryLink, SectionCard, StatCard, StatusBadge, ItemThumbnail } from '../components/ui';
 import { apiClient } from '../api/client';
 
 export default function StaffMenu() {
@@ -26,13 +26,23 @@ export default function StaffMenu() {
   const [rejectId, setRejectId] = useState(null);
   const [remarks, setRemarks] = useState('');
 
-  const [currentUser, setCurrentUser] = useState(null);
+  const [currentUser, setCurrentUser] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('user'));
+    } catch {
+      return null;
+    }
+  });
 
   useEffect(() => {
-    const loadUser = () => {
+    const loadUser = async () => {
       try {
-        const user = JSON.parse(localStorage.getItem('user'));
-        setCurrentUser(user);
+        const response = await apiClient.get('/api/v1/auth/me');
+        if (response && response.data && response.data.user) {
+          const freshUser = response.data.user;
+          setCurrentUser(freshUser);
+          localStorage.setItem('user', JSON.stringify(freshUser));
+        }
       } catch (err) {
         console.error('Failed to load user profile.', err);
       }
@@ -184,21 +194,26 @@ export default function StaffMenu() {
                 ) : (
                   claims.filter(c => c.status === 'Pending').map((claim) => (
                     <div key={claim.claim_id} className="rounded-lg border border-slate-200 p-4 space-y-3 bg-white">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <p className="font-bold text-campus-ink">
-                            Claim for: {claim.found_item_name || `Found Item #${claim.found_report_id}`}
-                          </p>
-                          <p className="text-xs text-slate-500">
-                            Claimant: {claim.claimant_first_name ? `${claim.claimant_first_name} ${claim.claimant_last_name}` : 'Student'} ({claim.claimant_university_id})
-                          </p>
+                      <div className="grid gap-4 sm:grid-cols-[120px_1fr]">
+                        <ItemThumbnail category={claim.found_item_category} photoUrl={claim.found_item_photo_url} className="min-h-24 sm:min-h-full" />
+                        <div className="space-y-3 flex-1">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <p className="font-bold text-campus-ink">
+                                Claim for: {claim.found_item_name || `Found Item #${claim.found_report_id}`}
+                              </p>
+                              <p className="text-xs text-slate-500">
+                                Claimant: {claim.claimant_first_name ? `${claim.claimant_first_name} ${claim.claimant_last_name}` : 'Student'} ({claim.claimant_university_id})
+                              </p>
+                            </div>
+                            <StatusBadge value={claim.status} />
+                          </div>
+                          
+                          <div className="bg-slate-50 p-3 rounded text-sm text-slate-700 border border-slate-100">
+                            <span className="font-semibold block text-xs text-slate-500 mb-1">PROOF OF OWNERSHIP:</span>
+                            {claim.proof_of_ownership}
+                          </div>
                         </div>
-                        <StatusBadge value={claim.status} />
-                      </div>
-                      
-                      <div className="bg-slate-50 p-3 rounded text-sm text-slate-700 border border-slate-100">
-                        <span className="font-semibold block text-xs text-slate-500 mb-1">PROOF OF OWNERSHIP:</span>
-                        {claim.proof_of_ownership}
                       </div>
 
                       <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">

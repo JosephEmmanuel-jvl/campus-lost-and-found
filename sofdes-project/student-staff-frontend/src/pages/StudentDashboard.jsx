@@ -1,11 +1,17 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Bell, ClipboardCheck, FilePlus2, PackageOpen, Search } from 'lucide-react';
-import { PageHeader, PrimaryLink, SectionCard, StatCard, StatusBadge } from '../components/ui';
+import { PageHeader, PrimaryLink, SectionCard, StatCard, StatusBadge, ItemThumbnail } from '../components/ui';
 import { apiClient } from '../api/client';
 
 export default function StudentDashboard() {
-  const [currentUser, setCurrentUser] = useState(null);
+  const [currentUser, setCurrentUser] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('user'));
+    } catch {
+      return null;
+    }
+  });
   const [lostReports, setLostReports] = useState([]);
   const [foundItems, setFoundItems] = useState([]);
   const [notifications, setNotifications] = useState([]);
@@ -13,13 +19,16 @@ export default function StudentDashboard() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    // Load logged-in user from localStorage
-    const loadUser = () => {
+    const loadUser = async () => {
       try {
-        const user = JSON.parse(localStorage.getItem('user'));
-        setCurrentUser(user);
+        const response = await apiClient.get('/api/v1/auth/me');
+        if (response && response.data && response.data.user) {
+          const freshUser = response.data.user;
+          setCurrentUser(freshUser);
+          localStorage.setItem('user', JSON.stringify(freshUser));
+        }
       } catch (err) {
-        setError('Failed to load user profile.');
+        console.error('Failed to load user profile from DB:', err);
       }
     };
     loadUser();
@@ -57,6 +66,7 @@ export default function StudentDashboard() {
             location: r.last_known_location,
             lostDate: r.date_lost,
             status: r.status,
+            photoUrl: r.photo_url,
           }));
           setLostReports(mappedLost);
 
@@ -70,6 +80,7 @@ export default function StudentDashboard() {
             location: f.location_found,
             foundDate: f.date_found,
             status: f.status === 'Unclaimed' ? 'Available' : f.status,
+            photoUrl: f.photo_url,
           }));
           setFoundItems(mappedFound);
 
@@ -234,15 +245,18 @@ export default function StudentDashboard() {
             <div className="col-span-3 text-center py-6 text-sm text-slate-500">No found items currently listed.</div>
           ) : (
             foundItems.slice(0, 3).map((item) => (
-              <div key={item.rawId} className="rounded-lg border border-slate-200 p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="font-semibold text-campus-ink">{item.title}</p>
-                    <p className="mt-1 text-sm text-slate-500">{item.location}</p>
+              <div key={item.rawId} className="rounded-lg border border-slate-200 p-4 flex flex-col justify-between">
+                <div>
+                  <ItemThumbnail category={item.category} photoUrl={item.photoUrl} className="min-h-32 mb-3" />
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="font-semibold text-campus-ink">{item.title}</p>
+                      <p className="mt-1 text-sm text-slate-500">{item.location}</p>
+                    </div>
+                    <StatusBadge value={item.status} />
                   </div>
-                  <StatusBadge value={item.status} />
                 </div>
-                <div className="mt-4 flex items-center justify-between gap-3">
+                <div className="mt-4 flex items-center justify-between gap-3 pt-3 border-t border-slate-100">
                   <span className="text-sm text-slate-500">{item.foundDate}</span>
                   <Link to="/claim" className="text-sm font-semibold text-campus-green">Start claim</Link>
                 </div>

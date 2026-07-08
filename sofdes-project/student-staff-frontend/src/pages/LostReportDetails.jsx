@@ -11,14 +11,20 @@ export default function LostReportDetails() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Load user role
-  let role = '';
-  try {
-    const user = JSON.parse(localStorage.getItem('user'));
-    role = user?.role || '';
-  } catch {
-    role = '';
-  }
+  // Reactive role — updates when auth/me finishes and fires userUpdated
+  const [role, setRole] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('user'))?.role || '';
+    } catch { return ''; }
+  });
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      try { setRole(JSON.parse(localStorage.getItem('user'))?.role || ''); } catch { /* */ }
+    };
+    window.addEventListener('userUpdated', handleUpdate);
+    return () => window.removeEventListener('userUpdated', handleUpdate);
+  }, []);
 
   useEffect(() => {
     const fetchDetails = async () => {

@@ -20,6 +20,8 @@ const { success } = require('./utils/apiResponse');
 const { notFound, errorHandler } = require('./middleware/errorHandler');
 const apiRoutes = require('./routes');
 
+const path = require('path');
+
 const app = express();
 
 // --- Database Auto-Initialization for Serverless (Vercel) -----------------
@@ -41,8 +43,11 @@ app.use(async (req, res, next) => {
 
 // --- Global middleware ----------------------------------------------------
 app.use(cors({ origin: true, credentials: true }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
+
+// --- Static files --------------------------------------------------------
+app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
 // --- Health check ---------------------------------------------------------
 app.get('/health', (req, res) =>

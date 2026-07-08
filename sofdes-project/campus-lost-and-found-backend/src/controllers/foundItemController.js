@@ -40,26 +40,30 @@ const create = asyncHandler(async (req, res) => {
     date_found,
   });
 
-  // Get all users in the system to notify them (Admin, Staff, and Students)
-  const users = await userModel.findAll();
+  // 1. Confirm submission to the reporter
+  await notificationModel.create({
+    university_id: req.user.university_id,
+    title: 'Found Report Submitted',
+    message: `Your found item report "${item_name}" has been recorded.`,
+    notification_type: 'Found',
+    related_report_id: report.found_report_id,
+  });
 
-  for (const user of users) {
-    let title, message;
-    if (user.university_id === req.user.university_id) {
-      title = 'Found Report Submitted';
-      message = `Your found item report "${item_name}" has been recorded.`;
-    } else {
-      title = 'New Found Item Reported';
-      message = `A new found item "${item_name}" has been reported at ${location_found || 'Campus'}.`;
+  // 2. Notify Admin and Staff users only (not all students)
+  try {
+    const users = await userModel.findAll();
+    const adminsAndStaff = users.filter(u => (u.role === 'Admin' || u.role === 'Staff') && u.university_id !== req.user.university_id);
+    for (const u of adminsAndStaff) {
+      await notificationModel.create({
+        university_id: u.university_id,
+        title: 'New Found Report',
+        message: `A new found item "${item_name}" has been reported at ${location_found || 'Campus'} by ${req.user.first_name || req.user.university_id}.`,
+        notification_type: 'Found',
+        related_report_id: report.found_report_id,
+      });
     }
-
-    await notificationModel.create({
-      university_id: user.university_id,
-      title,
-      message,
-      notification_type: 'General',
-      related_report_id: report.found_report_id,
-    });
+  } catch (err) {
+    console.error('Error notifying staff/admin of new found report:', err);
   }
 
   return success(res, { statusCode: 201, message: 'Found report created.', data: { report } });

@@ -29,5 +29,6 @@ router.use('/claims', require('./claimRoutes'));
 router.use('/notifications', require('./notificationRoutes'));
 router.use('/admin', require('./adminRoutes'));
 router.use('/search', require('./searchRoutes'));
+router.use('/upload', require('./uploadRoutes'));
 
 module.exports = router;

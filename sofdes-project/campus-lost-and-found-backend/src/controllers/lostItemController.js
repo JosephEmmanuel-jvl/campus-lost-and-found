@@ -43,26 +43,30 @@ const create = asyncHandler(async (req, res) => {
     date_lost,
   });
 
-  // Get all users in the system to notify them (Admin, Staff, and Students)
-  const users = await userModel.findAll();
-  
-  for (const user of users) {
-    let title, message;
-    if (user.university_id === req.user.university_id) {
-      title = 'Lost Report Submitted';
-      message = `Your lost item report "${item_name}" has been recorded and is now pending a match.`;
-    } else {
-      title = 'New Lost Item Reported';
-      message = `A new lost item "${item_name}" has been reported at ${last_known_location || 'Campus'}.`;
-    }
+  // 1. Confirm submission to the reporter
+  await notificationModel.create({
+    university_id: req.user.university_id,
+    title: 'Lost Report Submitted',
+    message: `Your lost item report "${item_name}" has been recorded and is now pending a match.`,
+    notification_type: 'Lost',
+    related_report_id: report.lost_report_id,
+  });
 
-    await notificationModel.create({
-      university_id: user.university_id,
-      title,
-      message,
-      notification_type: 'General',
-      related_report_id: report.lost_report_id,
-    });
+  // 2. Notify Admin and Staff users only (not all students)
+  try {
+    const users = await userModel.findAll();
+    const adminsAndStaff = users.filter(u => (u.role === 'Admin' || u.role === 'Staff') && u.university_id !== req.user.university_id);
+    for (const u of adminsAndStaff) {
+      await notificationModel.create({
+        university_id: u.university_id,
+        title: 'New Lost Report',
+        message: `A new lost item "${item_name}" has been reported at ${last_known_location || 'Campus'} by ${req.user.first_name || req.user.university_id}.`,
+        notification_type: 'Lost',
+        related_report_id: report.lost_report_id,
+      });
+    }
+  } catch (err) {
+    console.error('Error notifying staff/admin of new lost report:', err);
   }
 
   return success(res, { statusCode: 201, message: 'Lost report created.', data: { report } });

@@ -55,6 +55,26 @@ const submitClaim = asyncHandler(async (req, res) => {
     related_report_id: Number(found_report_id),
   });
 
+  // Notify all Admin users
+  try {
+    const userModel = require('../models/userModel');
+    const allUsers = await userModel.findAll();
+    const admins = allUsers.filter(u => u.role === 'Admin');
+    for (const admin of admins) {
+      if (admin.university_id !== req.user.university_id) {
+        await notificationModel.create({
+          university_id: admin.university_id,
+          title: 'New Claim Request',
+          message: `A new claim request has been submitted for "${foundReport.item_name}" by ${req.user.first_name || 'Student'} (${req.user.university_id}).`,
+          notification_type: 'Claim',
+          related_report_id: Number(found_report_id),
+        });
+      }
+    }
+  } catch (err) {
+    console.error('Error generating Admin notifications for new claim:', err);
+  }
+
   return success(res, { statusCode: 201, message: 'Claim submitted.', data: { claim } });
 });
 
@@ -67,8 +87,8 @@ const getClaim = asyncHandler(async (req, res) => {
   const claim = await claimModel.findById(req.params.id);
   if (!claim) throw new ApiError(404, 'Claim not found.');
 
-  // A non-admin may only view their own claim.
-  if (req.user.role !== 'Admin' && claim.claimant_university_id !== req.user.university_id) {
+  // A non-admin/non-staff may only view their own claim.
+  if (req.user.role !== 'Admin' && req.user.role !== 'Staff' && claim.claimant_university_id !== req.user.university_id) {
     throw new ApiError(403, 'You do not have permission to view this claim.');
   }
   return success(res, { message: 'Claim retrieved.', data: { claim } });

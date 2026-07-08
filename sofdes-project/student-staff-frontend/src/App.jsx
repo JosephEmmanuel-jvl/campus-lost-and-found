@@ -20,22 +20,26 @@ const allNavItems = [
   { to: '/report-found', label: 'Report Found', icon: PackageOpen },
   { to: '/search', label: 'Search', icon: Search },
   { to: '/notifications', label: 'Notifications', icon: Bell },
-  { to: '/claim', label: 'Claim', icon: ClipboardCheck },
+  // Claim is only relevant for Students; Staff/Admin manage via Staff Portal
+  { to: '/claim', label: 'Claim', icon: ClipboardCheck, excludeRoles: ['Staff', 'Admin'] },
+  // Staff Portal is visible to both Staff and Admin
+  { to: '/staff', label: 'Staff Portal', icon: ShieldCheck, roles: ['Staff', 'Admin'] },
   { to: '/profile', label: 'Profile', icon: UserRound },
 ];
 
 export default function AppShell() {
   const navigate = useNavigate();
   const [unreadCount, setUnreadCount] = useState(0);
+  const [currentUser, setCurrentUser] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('user'));
+    } catch {
+      return null;
+    }
+  });
 
   // Get current user role
-  let role = '';
-  try {
-    const user = JSON.parse(localStorage.getItem('user'));
-    role = user?.role || '';
-  } catch {
-    role = '';
-  }
+  const role = currentUser?.role || '';
 
   // Validate token on mount and sync user details
   useEffect(() => {
@@ -43,7 +47,9 @@ export default function AppShell() {
       try {
         const response = await apiClient.get('/api/v1/auth/me');
         if (response && response.data && response.data.user) {
-          localStorage.setItem('user', JSON.stringify(response.data.user));
+          const freshUser = response.data.user;
+          setCurrentUser(freshUser);
+          localStorage.setItem('user', JSON.stringify(freshUser));
           window.dispatchEvent(new Event('userUpdated'));
         }
       } catch (e) {
@@ -51,6 +57,17 @@ export default function AppShell() {
       }
     };
     validateToken();
+
+    const handleUserUpdate = () => {
+      try {
+        const user = JSON.parse(localStorage.getItem('user'));
+        setCurrentUser(user);
+      } catch (err) {
+        console.error('Error handling user update event:', err);
+      }
+    };
+    window.addEventListener('userUpdated', handleUserUpdate);
+    return () => window.removeEventListener('userUpdated', handleUserUpdate);
   }, []);
 
   // Fetch unread notifications count
@@ -77,11 +94,12 @@ export default function AppShell() {
   }, []);
 
 
-  // Filter navigation items by role
+  // Filter navigation items by role:
+  // - `roles` = whitelist: item only shown to listed roles
+  // - `excludeRoles` = blacklist: item hidden from listed roles
   const navItems = allNavItems.filter(item => {
-    if (item.roles) {
-      return item.roles.includes(role);
-    }
+    if (item.roles) return item.roles.includes(role);
+    if (item.excludeRoles) return !item.excludeRoles.includes(role);
     return true;
   });
 

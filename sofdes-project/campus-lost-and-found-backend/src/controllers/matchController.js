@@ -115,6 +115,24 @@ const confirmMatch = asyncHandler(async (req, res) => {
     related_report_id: Number(found_report_id),
   });
 
+  // Notify all Admins of the possible match
+  try {
+    const userModel = require('../models/userModel');
+    const allUsers = await userModel.findAll();
+    const admins = allUsers.filter(u => u.role === 'Admin');
+    for (const admin of admins) {
+      await notificationModel.create({
+        university_id: admin.university_id,
+        title: 'Possible Match Found',
+        message: `A possible match was confirmed between lost report "${lostReport.item_name}" and found report "${foundReport.item_name}".`,
+        notification_type: 'Match',
+        related_report_id: Number(lostReportId),
+      });
+    }
+  } catch (err) {
+    console.error('Error generating Admin notifications for match:', err);
+  }
+
   return success(res, {
     message: 'Match confirmed. Both reports updated to Matched.',
     data: { lost_report_id: Number(lostReportId), found_report_id: Number(found_report_id) },
