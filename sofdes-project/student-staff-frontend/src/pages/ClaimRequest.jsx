@@ -22,8 +22,7 @@ export default function ClaimRequest() {
   const userRole = currentUser?.role || currentUserFromStorage?.role || '';
   const isStaff = userRole === 'Staff';
   const isAdmin = userRole === 'Admin';
-  const isStaffOrAdmin = isAdmin || isStaff;
-  const isViewOnly = queryParams.get('mode') !== 'claim' || isStaffOrAdmin;
+  const isViewOnly = queryParams.get('mode') !== 'claim' || isAdmin;
 
   const [proofOfOwnership, setProofOfOwnership] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -166,13 +165,13 @@ export default function ClaimRequest() {
 
   useEffect(() => {
     if (currentUser && foundId) {
-      if (isStaffOrAdmin) {
+      if (isAdmin) {
         fetchClaimsList();
       } else {
         fetchUserClaim();
       }
     }
-  }, [currentUser, foundId]);
+  }, [currentUser, foundId, isAdmin]);
 
   const handleSelectChange = async (e) => {
     const id = e.target.value;
@@ -380,8 +379,8 @@ export default function ClaimRequest() {
         </SectionCard>
 
         <div className="space-y-6">
-          {isStaff ? (
-            /* Staff View: Review all claims for this item */
+          {isAdmin ? (
+            /* Admin View: Review all claims for this item */
             <SectionCard title="Verify Claim Requests" subtitle="Review proof of ownership submitted by claimants">
               {rejectClaimId && (
                 <div className="rounded-lg border border-red-300 bg-red-50/50 p-5 mb-5">
