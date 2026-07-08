@@ -30,6 +30,10 @@ const submitClaim = asyncHandler(async (req, res) => {
   const foundReport = await foundItemModel.findById(found_report_id);
   if (!foundReport) throw new ApiError(404, 'Found report not found.');
 
+  if (req.user.role === 'Admin') {
+    throw new ApiError(403, 'Admin accounts cannot submit claim requests.');
+  }
+
   // Business rule: a user cannot claim a found item they reported themselves.
   if (foundReport.university_id === req.user.university_id) {
     throw new ApiError(403, 'You cannot submit a claim for a found item you reported.');

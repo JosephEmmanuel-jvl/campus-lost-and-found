@@ -201,15 +201,10 @@ export default function LostReportDetails() {
                       <p className="mt-3 text-sm leading-6 text-slate-600">{item.description}</p>
                     </div>
                     <div className="mt-4 pt-2 border-t border-slate-100 flex gap-2">
-                      {role === 'Admin' && report.status === 'Pending' && item.status === 'Available' ? (
-                        <button
-                          onClick={() => handleConfirmMatch(item.rawId)}
-                          className="w-full inline-flex items-center justify-center gap-2 rounded bg-campus-green py-2 text-sm font-semibold text-white hover:bg-teal-800"
-                        >
-                          Confirm Match
-                        </button>
+                      {role === 'Admin' ? (
+                        <PrimaryLink to={`/claim/${item.rawId}?mode=view`}>View report</PrimaryLink>
                       ) : (
-                        <PrimaryLink to={`/claim/${item.rawId}`} icon={ClipboardCheck}>Start claim</PrimaryLink>
+                        <PrimaryLink to={`/claim/${item.rawId}?mode=claim`} icon={ClipboardCheck}>Start claim</PrimaryLink>
                       )}
                     </div>
                   </article>
@@ -234,8 +229,8 @@ export default function LostReportDetails() {
 
           <SectionCard title="Next action">
             <div className="space-y-3">
-              {report.status !== 'Claimed' && (
-                <PrimaryLink to={`/claim`}>Create claim request</PrimaryLink>
+              {role !== 'Admin' && report.status !== 'Claimed' && (
+                <PrimaryLink to={`/claim?mode=claim`}>Create claim request</PrimaryLink>
               )}
               <Link to="/notifications" className="block rounded-md border border-slate-300 px-4 py-2.5 text-center text-sm font-semibold text-slate-700 hover:bg-slate-50">
                 View notifications

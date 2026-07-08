@@ -11,6 +11,13 @@ export default function ClaimRequest() {
   const [item, setItem] = useState(null);
   const [loadingItem, setLoadingItem] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const queryParams = new URLSearchParams(window.location.search);
+  const currentUserFromStorage = (() => {
+    try {
+      return JSON.parse(localStorage.getItem('user'));
+    } catch { return null; }
+  })();
+  const isViewOnly = queryParams.get('mode') !== 'claim' || (currentUser?.role || currentUserFromStorage?.role) === 'Admin';
   const [proofOfOwnership, setProofOfOwnership] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -226,118 +233,138 @@ export default function ClaimRequest() {
         </SectionCard>
 
         <div className="space-y-6">
-          <SectionCard title="Claimant information" subtitle="Details used by campus staff to verify ownership">
-            <form onSubmit={handleSubmit} className="grid gap-5">
-              {error && (
-                <div className="rounded bg-red-50 p-3 text-sm text-red-600 border border-red-200">
-                  {error}
+          {isViewOnly ? (
+            <SectionCard title="Claim details" subtitle="Viewing found report details">
+              <div className="space-y-4">
+                <div className="rounded-lg border border-slate-200 bg-slate-50 p-6 text-center">
+                  <p className="text-slate-600 font-medium">You are currently viewing this found report details.</p>
+                  {(currentUser?.role || currentUserFromStorage?.role) === 'Admin' ? (
+                    <p className="text-slate-500 text-sm mt-1">Admin accounts only have view permissions for lost and found reports.</p>
+                  ) : (
+                    <p className="text-slate-500 text-sm mt-1">To submit a claim, start a claim from a lost item report matches page.</p>
+                  )}
                 </div>
-              )}
-              {successMsg && (
-                <div className="rounded bg-green-50 p-3 text-sm text-green-600 border border-green-200 font-medium">
-                  {successMsg}
+                <div className="flex justify-end border-t border-slate-200 pt-5">
+                  <Link to="/search" className="inline-flex justify-center rounded-md border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+                    Back to items
+                  </Link>
                 </div>
-              )}
-              
-              <div className="grid gap-5 md:grid-cols-2">
-                <FormField label="Student name">
-                  <input
-                    disabled
-                    className={`${inputClasses} bg-slate-50 cursor-not-allowed`}
-                    value={currentUser ? `${currentUser.first_name} ${currentUser.last_name}` : ''}
-                    placeholder="Student name"
-                  />
-                </FormField>
-                <FormField label="Student ID">
-                  <input
-                    disabled
-                    className={`${inputClasses} bg-slate-50 cursor-not-allowed`}
-                    value={currentUser?.university_id || ''}
-                    placeholder="Student ID"
-                  />
-                </FormField>
-                <FormField label="University email">
-                  <input
-                    disabled
-                    className={`${inputClasses} bg-slate-50 cursor-not-allowed`}
-                    value={currentUser?.email || ''}
-                    placeholder="University email"
-                  />
-                </FormField>
-                <FormField label="Phone">
-                  <input
-                    disabled
-                    className={`${inputClasses} bg-slate-50 cursor-not-allowed`}
-                    value={currentUser?.contact_number || 'None provided'}
-                    placeholder="Phone"
-                  />
-                </FormField>
               </div>
-
-              <FormField label="Ownership details">
-                <textarea
-                  name="proof_of_ownership"
-                  value={proofOfOwnership}
-                  onChange={(e) => setProofOfOwnership(e.target.value)}
-                  className={textareaClasses}
-                  placeholder="Describe details only the owner would know (e.g. stickers, contents, passwords, purchase details)."
-                  required
-                />
-              </FormField>
-
-              <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-                <input
-                  type="file"
-                  id="claim-photo-upload"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                  className="hidden"
-                />
-                {photoFile ? (
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      {photoPreview && (
-                        <img src={photoPreview} alt="Preview" className="h-10 w-10 rounded object-cover border border-slate-200" />
-                      )}
-                      <div>
-                        <p className="font-semibold text-campus-ink text-sm truncate max-w-[150px]">{photoFile.name}</p>
-                        <p className="text-xs text-slate-500">{(photoFile.size / 1024).toFixed(1)} KB</p>
-                      </div>
-                    </div>
-                    <button 
-                      type="button" 
-                      onClick={handleRemovePhoto}
-                      className="text-xs font-semibold text-red-600 hover:text-red-800"
-                    >
-                      Remove
-                    </button>
+            </SectionCard>
+          ) : (
+            <SectionCard title="Claimant information" subtitle="Details used by campus staff to verify ownership">
+              <form onSubmit={handleSubmit} className="grid gap-5">
+                {error && (
+                  <div className="rounded bg-red-50 p-3 text-sm text-red-600 border border-red-200">
+                    {error}
                   </div>
-                ) : (
-                  <button type="button" onClick={() => document.getElementById('claim-photo-upload').click()} className="flex items-center gap-2 text-campus-green hover:text-campus-ink">
-                    <FileCheck2 className="h-5 w-5 text-campus-green" />
-                    <div className="text-left">
-                      <p className="font-semibold text-campus-ink">Attach supporting photo evidence (optional)</p>
-                      <p className="text-xs text-slate-500">Upload a receipt, photo of the item, or other ownership proof</p>
-                    </div>
-                  </button>
                 )}
-              </div>
+                {successMsg && (
+                  <div className="rounded bg-green-50 p-3 text-sm text-green-600 border border-green-200 font-medium">
+                    {successMsg}
+                  </div>
+                )}
+                
+                <div className="grid gap-5 md:grid-cols-2">
+                  <FormField label="Student name">
+                    <input
+                      disabled
+                      className={`${inputClasses} bg-slate-50 cursor-not-allowed`}
+                      value={currentUser ? `${currentUser.first_name} ${currentUser.last_name}` : ''}
+                      placeholder="Student name"
+                    />
+                  </FormField>
+                  <FormField label="Student ID">
+                    <input
+                      disabled
+                      className={`${inputClasses} bg-slate-50 cursor-not-allowed`}
+                      value={currentUser?.university_id || ''}
+                      placeholder="Student ID"
+                    />
+                  </FormField>
+                  <FormField label="University email">
+                    <input
+                      disabled
+                      className={`${inputClasses} bg-slate-50 cursor-not-allowed`}
+                      value={currentUser?.email || ''}
+                      placeholder="University email"
+                    />
+                  </FormField>
+                  <FormField label="Phone">
+                    <input
+                      disabled
+                      className={`${inputClasses} bg-slate-50 cursor-not-allowed`}
+                      value={currentUser?.contact_number || 'None provided'}
+                      placeholder="Phone"
+                    />
+                  </FormField>
+                </div>
 
-              <div className="flex flex-col gap-3 border-t border-slate-200 pt-5 sm:flex-row sm:justify-end">
-                <Link to="/search" className="inline-flex justify-center rounded-md border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">
-                  Back to items
-                </Link>
-                <button
-                  type="submit"
-                  disabled={submitting || !item || item.status === 'Claimed'}
-                  className="inline-flex items-center justify-center gap-2 rounded-md bg-campus-green px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-800 disabled:opacity-50"
-                >
-                  {submitting ? 'Submitting...' : 'Submit claim'}
-                  <ArrowRight className="h-4 w-4" />
-                </button>
-              </div>
-            </form>
-          </SectionCard>
+                <FormField label="Ownership details">
+                  <textarea
+                    name="proof_of_ownership"
+                    value={proofOfOwnership}
+                    onChange={(e) => setProofOfOwnership(e.target.value)}
+                    className={textareaClasses}
+                    placeholder="Describe details only the owner would know (e.g. stickers, contents, passwords, purchase details)."
+                    required
+                  />
+                </FormField>
+
+                <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                  <input
+                    type="file"
+                    id="claim-photo-upload"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                  {photoFile ? (
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        {photoPreview && (
+                          <img src={photoPreview} alt="Preview" className="h-10 w-10 rounded object-cover border border-slate-200" />
+                        )}
+                        <div>
+                          <p className="font-semibold text-campus-ink text-sm truncate max-w-[150px]">{photoFile.name}</p>
+                          <p className="text-xs text-slate-500">{(photoFile.size / 1024).toFixed(1)} KB</p>
+                        </div>
+                      </div>
+                      <button 
+                        type="button" 
+                        onClick={handleRemovePhoto}
+                        className="text-xs font-semibold text-red-600 hover:text-red-800"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ) : (
+                    <button type="button" onClick={() => document.getElementById('claim-photo-upload').click()} className="flex items-center gap-2 text-campus-green hover:text-campus-ink">
+                      <FileCheck2 className="h-5 w-5 text-campus-green" />
+                      <div className="text-left">
+                        <p className="font-semibold text-campus-ink">Attach supporting photo evidence (optional)</p>
+                        <p className="text-xs text-slate-500">Upload a receipt, photo of the item, or other ownership proof</p>
+                      </div>
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex flex-col gap-3 border-t border-slate-200 pt-5 sm:flex-row sm:justify-end">
+                  <Link to="/search" className="inline-flex justify-center rounded-md border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+                    Back to items
+                  </Link>
+                  <button
+                    type="submit"
+                    disabled={submitting || !item || item.status === 'Claimed'}
+                    className="inline-flex items-center justify-center gap-2 rounded-md bg-campus-green px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-800 disabled:opacity-50"
+                  >
+                    {submitting ? 'Submitting...' : 'Submit claim'}
+                    <ArrowRight className="h-4 w-4" />
+                  </button>
+                </div>
+              </form>
+            </SectionCard>
+          )}
         </div>
       </div>
     </div>

@@ -14,6 +14,20 @@ export default function SearchPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  const [role, setRole] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('user'))?.role || '';
+    } catch { return ''; }
+  });
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      try { setRole(JSON.parse(localStorage.getItem('user'))?.role || ''); } catch { /* */ }
+    };
+    window.addEventListener('userUpdated', handleUpdate);
+    return () => window.removeEventListener('userUpdated', handleUpdate);
+  }, []);
+
   useEffect(() => {
     const fetchResults = async () => {
       setLoading(true);
@@ -29,20 +43,40 @@ export default function SearchPage() {
 
         if (json && json.data) {
           const rawResults = json.data.results || [];
-          const mapped = rawResults.map(r => ({
-            id: r.report_type === 'lost' ? `LST-${String(r.report_id).padStart(4, '0')}` : `FND-${String(r.report_id).padStart(4, '0')}`,
-            rawId: r.report_id,
-            type: r.report_type === 'lost' ? 'Lost Report' : 'Found Item',
-            title: r.item_name,
-            category: r.category,
-            status: r.status === 'Unclaimed' ? 'Available' : r.status,
-            date: r.date,
-            location: r.location,
-            description: r.description,
-            route: r.report_type === 'lost' ? `/lost-reports/${r.report_id}` : `/claim/${r.report_id}`,
-            actionLabel: r.report_type === 'lost' ? 'View report' : 'Start claim',
-            photoUrl: r.photo_url,
-          }));
+          const mapped = rawResults.map(r => {
+            const isLost = r.report_type === 'lost';
+            let actionLabel = '';
+            let route = '';
+            
+            if (role === 'Admin') {
+              actionLabel = 'View report';
+              route = isLost ? `/lost-reports/${r.report_id}` : `/claim/${r.report_id}?mode=view`;
+            } else {
+              // Staff or Student
+              if (isLost) {
+                actionLabel = 'Start claim';
+                route = `/lost-reports/${r.report_id}`;
+              } else {
+                actionLabel = 'View report';
+                route = `/claim/${r.report_id}?mode=view`;
+              }
+            }
+
+            return {
+              id: isLost ? `LST-${String(r.report_id).padStart(4, '0')}` : `FND-${String(r.report_id).padStart(4, '0')}`,
+              rawId: r.report_id,
+              type: isLost ? 'Lost Report' : 'Found Item',
+              title: r.item_name,
+              category: r.category,
+              status: r.status === 'Unclaimed' ? 'Available' : r.status,
+              date: r.date,
+              location: r.location,
+              description: r.description,
+              route,
+              actionLabel,
+              photoUrl: r.photo_url,
+            };
+          });
           setResults(mapped);
         }
       } catch (err) {
@@ -58,7 +92,7 @@ export default function SearchPage() {
     }, 300);
 
     return () => clearTimeout(timeoutId);
-  }, [keyword, category, location]);
+  }, [keyword, category, location, role]);
 
   const filteredResults = useMemo(() => {
     return results.filter((row) => type === 'All reports' || row.type === type);
@@ -144,7 +178,7 @@ export default function SearchPage() {
                     </div>
                     <Link to={row.route} className="inline-flex items-center gap-2 rounded-md bg-campus-green px-3 py-2 text-sm font-semibold text-white hover:bg-teal-800">
                       {row.actionLabel}
-                      {row.type === 'Found Item' ? <ClipboardCheck className="h-4 w-4" /> : null}
+                      {row.actionLabel === 'Start claim' ? <ClipboardCheck className="h-4 w-4" /> : null}
                     </Link>
                   </div>
                 </div>
