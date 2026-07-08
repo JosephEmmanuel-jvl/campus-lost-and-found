@@ -48,7 +48,7 @@ const create = asyncHandler(async (req, res) => {
     university_id: req.user.university_id,
     title: 'Lost Report Submitted',
     message: `Your lost item report "${item_name}" has been recorded and is now pending a match.`,
-    notification_type: 'Lost',
+    notification_type: 'General',
     related_report_id: report.lost_report_id,
   });
 
@@ -61,7 +61,7 @@ const create = asyncHandler(async (req, res) => {
         university_id: u.university_id,
         title: 'New Lost Report',
         message: `A new lost item "${item_name}" has been reported at ${last_known_location || 'Campus'} by ${req.user.first_name || req.user.university_id}.`,
-        notification_type: 'Lost',
+        notification_type: 'General',
         related_report_id: report.lost_report_id,
       });
     }

@@ -45,7 +45,7 @@ const create = asyncHandler(async (req, res) => {
     university_id: req.user.university_id,
     title: 'Found Report Submitted',
     message: `Your found item report "${item_name}" has been recorded.`,
-    notification_type: 'Found',
+    notification_type: 'General',
     related_report_id: report.found_report_id,
   });
 
@@ -58,7 +58,7 @@ const create = asyncHandler(async (req, res) => {
         university_id: u.university_id,
         title: 'New Found Report',
         message: `A new found item "${item_name}" has been reported at ${location_found || 'Campus'} by ${req.user.first_name || req.user.university_id}.`,
-        notification_type: 'Found',
+        notification_type: 'General',
         related_report_id: report.found_report_id,
       });
     }

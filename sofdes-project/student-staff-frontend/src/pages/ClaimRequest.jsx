@@ -133,7 +133,7 @@ export default function ClaimRequest() {
           reader.onerror = (err) => reject(err);
         });
         const uploadRes = await apiClient.post('/api/v1/upload', { file: base64 });
-        const photo_url = uploadRes?.data?.data?.url || '';
+        const photo_url = uploadRes?.data?.url || '';
         if (photo_url) {
           finalProof = `${proofOfOwnership}\n\n[Evidence Image: ${photo_url}]`;
         }

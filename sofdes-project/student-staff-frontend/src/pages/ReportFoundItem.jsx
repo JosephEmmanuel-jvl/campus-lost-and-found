@@ -65,7 +65,7 @@ export default function ReportFoundItem() {
           reader.onerror = (err) => reject(err);
         });
         const uploadRes = await apiClient.post('/api/v1/upload', { file: base64 });
-        photo_url = uploadRes?.data?.data?.url || '';
+        photo_url = uploadRes?.data?.url || '';
       }
 
       const result = await apiClient.post('/api/v1/found-items', {

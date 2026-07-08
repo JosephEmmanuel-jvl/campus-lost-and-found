@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { BellRing, Megaphone } from 'lucide-react';
 import { PageHeader, SectionCard, StatCard, StatusBadge } from '../components/ui';
 import { apiClient } from '../api/client';
 
 export default function Notifications() {
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -51,21 +52,38 @@ export default function Notifications() {
     fetchNotifications();
   }, []);
 
-  const handleMarkAsRead = async (rawId, isRead) => {
-    if (isRead) return;
+  const handleNotificationClick = async (e, note) => {
+    e.preventDefault();
+
+    // If there is a related report, verify it exists first
+    if (note.route.includes('/lost-reports/') || note.route.includes('/claim/')) {
+      const isLost = note.route.includes('/lost-reports/');
+      const reportId = note.route.split('/').pop();
+      const endpoint = isLost ? `/api/v1/lost-items/${reportId}` : `/api/v1/found-items/${reportId}`;
+
+      try {
+        await apiClient.get(endpoint);
+      } catch (err) {
+        alert('The related report no longer exists.');
+        return; // Halt navigation and do not mark as read
+      }
+    }
 
     try {
-      const response = await apiClient.patch(`/api/v1/notifications/${rawId}`);
-
-      if (response) {
-        // Optimistically update notifications in the local state
-        setNotifications((prev) =>
-          prev.map((n) => (n.rawId === rawId ? { ...n, status: 'Read', is_read: true } : n))
-        );
+      if (!note.is_read) {
+        const response = await apiClient.patch(`/api/v1/notifications/${note.rawId}`);
+        if (response) {
+          setNotifications((prev) =>
+            prev.map((n) => (n.rawId === note.rawId ? { ...n, status: 'Read', is_read: true } : n))
+          );
+          window.dispatchEvent(new Event('notificationRead'));
+        }
       }
     } catch (err) {
       console.error('Failed to mark notification as read:', err);
     }
+
+    navigate(note.route);
   };
 
   if (loading) {
@@ -111,7 +129,7 @@ export default function Notifications() {
               <Link
                 key={note.rawId}
                 to={note.route}
-                onClick={() => handleMarkAsRead(note.rawId, note.is_read)}
+                onClick={(e) => handleNotificationClick(e, note)}
                 className="flex flex-col gap-3 py-5 first:pt-0 last:pb-0 md:flex-row md:items-center md:justify-between"
               >
                 <div className="flex gap-4">
