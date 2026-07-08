@@ -58,14 +58,17 @@ export default function Notifications() {
     // If there is a related report, verify it exists first
     if (note.route.includes('/lost-reports/') || note.route.includes('/claim/')) {
       const isLost = note.route.includes('/lost-reports/');
-      const reportId = note.route.split('/').pop();
-      const endpoint = isLost ? `/api/v1/lost-items/${reportId}` : `/api/v1/found-items/${reportId}`;
+      const reportId = note.route.split('/').pop().split('?')[0];
 
-      try {
-        await apiClient.get(endpoint);
-      } catch (err) {
-        alert('The related report no longer exists.');
-        return; // Halt navigation and do not mark as read
+      if (reportId && !isNaN(Number(reportId))) {
+        const endpoint = isLost ? `/api/v1/lost-items/${reportId}` : `/api/v1/found-items/${reportId}`;
+
+        try {
+          await apiClient.get(endpoint);
+        } catch (err) {
+          alert('The related report no longer exists.');
+          return; // Halt navigation and do not mark as read
+        }
       }
     }
 

@@ -18,9 +18,9 @@ const claimModel = {
       `INSERT INTO claim_request
          (found_report_id, claimant_university_id, proof_of_ownership)
        VALUES (?, ?, ?) RETURNING claim_id`,
-      [found_report_id, claimant_university_id, proof_of_ownership]
+      [Number(found_report_id), claimant_university_id, proof_of_ownership]
     );
-    return this.findById(result.insertId);
+    return this.findById(Number(result.insertId));
   },
 
   async findById(claimId) {
@@ -35,7 +35,7 @@ const claimModel = {
          JOIN user u ON u.university_id = c.claimant_university_id
          JOIN found_item_report f ON f.found_report_id = c.found_report_id
         WHERE c.claim_id = ?`,
-      [claimId]
+      [Number(claimId)]
     );
     return rows[0] || null;
   },
@@ -81,7 +81,7 @@ const claimModel = {
       `SELECT COUNT(*) AS cnt
          FROM claim_request
         WHERE found_report_id = ? AND status = 'Approved'`,
-      [foundReportId]
+      [Number(foundReportId)]
     );
     return rows[0].cnt > 0;
   },
@@ -97,8 +97,8 @@ const claimModel = {
               reviewed_by_university_id = ?,
               admin_remarks = ?,
               review_date = NOW()
-        WHERE claim_id = ?`,
-      [status, reviewed_by_university_id, admin_remarks, claimId]
+         WHERE claim_id = ?`,
+      [status, reviewed_by_university_id, admin_remarks, Number(claimId)]
     );
   },
 };

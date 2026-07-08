@@ -58,10 +58,10 @@ const notificationModel = {
       `UPDATE notification
           SET is_read = TRUE
         WHERE notification_id = ? AND university_id = ?`,
-      [notificationId, universityId]
+      [Number(notificationId), universityId]
     );
     if (result.affectedRows === 0) return null;
-    return this.findById(notificationId);
+    return this.findById(Number(notificationId));
   },
 };
 

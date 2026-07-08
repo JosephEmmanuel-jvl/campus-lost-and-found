@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, Camera, PackageCheck } from 'lucide-react';
-import { categories } from '../data/mockData';
+import { categories, campusLocations } from '../data/mockData';
 import { FormField, PageHeader, SectionCard, inputClasses, selectClasses, textareaClasses } from '../components/ui';
 import { apiClient } from '../api/client';
 
@@ -13,7 +13,8 @@ export default function ReportFoundItem() {
     category: '',
     date_found: '',
     condition: '',
-    location_found: '',
+    building: '',
+    area: '',
     holding_office: '',
     keywords: '',
     description: '',
@@ -68,12 +69,14 @@ export default function ReportFoundItem() {
         photo_url = uploadRes?.data?.url || '';
       }
 
+      const location_found = `${formData.building}${formData.area ? ` - ${formData.area}` : ''}`;
+
       const result = await apiClient.post('/api/v1/found-items', {
         item_name: formData.item_name,
         category: formData.category,
         date_found: formData.date_found,
         keywords: formData.keywords,
-        location_found: formData.location_found,
+        location_found: location_found,
         description: detailedDescription,
         photo_url: photo_url,
       });
@@ -155,14 +158,27 @@ export default function ReportFoundItem() {
                   <option>Damaged</option>
                 </select>
               </FormField>
-              <FormField label="Found location">
+              <FormField label="Found building">
+                <select
+                  name="building"
+                  value={formData.building}
+                  onChange={handleChange}
+                  className={selectClasses}
+                  required
+                >
+                  <option value="" disabled>Select building</option>
+                  {campusLocations.map((location) => (
+                    <option key={location}>{location}</option>
+                  ))}
+                </select>
+              </FormField>
+              <FormField label="Room or area">
                 <input
-                  name="location_found"
-                  value={formData.location_found}
+                  name="area"
+                  value={formData.area}
                   onChange={handleChange}
                   className={inputClasses}
-                  placeholder="Enter where the item was found"
-                  required
+                  placeholder="Enter room, desk, or area"
                 />
               </FormField>
               <FormField label="Holding office">

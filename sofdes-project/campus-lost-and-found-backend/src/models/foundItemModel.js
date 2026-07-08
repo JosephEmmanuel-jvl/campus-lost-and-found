@@ -16,7 +16,7 @@ const foundItemModel = {
        VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING found_report_id`,
       [university_id, item_name, description, category, keywords, photo_url, location_found, date_found]
     );
-    return this.findById(result.insertId);
+    return this.findById(Number(result.insertId));
   },
 
   async findById(foundReportId) {
@@ -25,7 +25,7 @@ const foundItemModel = {
          FROM found_item_report f
          JOIN user u ON u.university_id = f.university_id
         WHERE f.found_report_id = ?`,
-      [foundReportId]
+      [Number(foundReportId)]
     );
     return rows[0] || null;
   },
@@ -62,9 +62,9 @@ const foundItemModel = {
     await conn.execute(
       `UPDATE found_item_report
           SET status = COALESCE(?, status),
-              matched_lost_report_id = ?
-        WHERE found_report_id = ?`,
-      [status ?? null, matched_lost_report_id ?? null, foundReportId]
+               matched_lost_report_id = ?
+         WHERE found_report_id = ?`,
+      [status ?? null, matched_lost_report_id ? Number(matched_lost_report_id) : null, Number(foundReportId)]
     );
   },
 
@@ -74,7 +74,7 @@ const foundItemModel = {
   async setStatus(foundReportId, status, conn = pool) {
     await conn.execute(
       `UPDATE found_item_report SET status = ? WHERE found_report_id = ?`,
-      [status, foundReportId]
+      [status, Number(foundReportId)]
     );
   },
 
@@ -85,19 +85,19 @@ const foundItemModel = {
     for (const key of allowed) {
       if (fields[key] !== undefined) { sets.push(`${key} = ?`); params.push(fields[key]); }
     }
-    if (sets.length === 0) return this.findById(foundReportId);
-    params.push(foundReportId);
+    if (sets.length === 0) return this.findById(Number(foundReportId));
+    params.push(Number(foundReportId));
     await pool.execute(
       `UPDATE found_item_report SET ${sets.join(', ')} WHERE found_report_id = ?`,
       params
     );
-    return this.findById(foundReportId);
+    return this.findById(Number(foundReportId));
   },
 
   async remove(foundReportId) {
     const [result] = await pool.execute(
       `DELETE FROM found_item_report WHERE found_report_id = ?`,
-      [foundReportId]
+      [Number(foundReportId)]
     );
     return result.affectedRows > 0;
   },

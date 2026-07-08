@@ -21,7 +21,7 @@ const lostItemModel = {
        VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING lost_report_id`,
       [university_id, item_name, description, category, keywords, photo_url, last_known_location, date_lost]
     );
-    return this.findById(result.insertId);
+    return this.findById(Number(result.insertId));
   },
 
   async findById(lostReportId) {
@@ -30,7 +30,7 @@ const lostItemModel = {
          FROM lost_item_report l
          JOIN user u ON u.university_id = l.university_id
         WHERE l.lost_report_id = ?`,
-      [lostReportId]
+      [Number(lostReportId)]
     );
     return rows[0] || null;
   },
@@ -75,8 +75,8 @@ const lostItemModel = {
       `UPDATE lost_item_report
           SET status = COALESCE(?, status),
               matched_found_report_id = ?
-        WHERE lost_report_id = ?`,
-      [status ?? null, matched_found_report_id ?? null, lostReportId]
+         WHERE lost_report_id = ?`,
+      [status ?? null, matched_found_report_id ? Number(matched_found_report_id) : null, Number(lostReportId)]
     );
   },
 
@@ -90,19 +90,19 @@ const lostItemModel = {
     for (const key of allowed) {
       if (fields[key] !== undefined) { sets.push(`${key} = ?`); params.push(fields[key]); }
     }
-    if (sets.length === 0) return this.findById(lostReportId);
-    params.push(lostReportId);
+    if (sets.length === 0) return this.findById(Number(lostReportId));
+    params.push(Number(lostReportId));
     await pool.execute(
       `UPDATE lost_item_report SET ${sets.join(', ')} WHERE lost_report_id = ?`,
       params
     );
-    return this.findById(lostReportId);
+    return this.findById(Number(lostReportId));
   },
 
   async remove(lostReportId) {
     const [result] = await pool.execute(
       `DELETE FROM lost_item_report WHERE lost_report_id = ?`,
-      [lostReportId]
+      [Number(lostReportId)]
     );
     return result.affectedRows > 0;
   },

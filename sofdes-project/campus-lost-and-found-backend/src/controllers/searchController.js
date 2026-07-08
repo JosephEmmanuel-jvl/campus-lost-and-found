@@ -21,11 +21,23 @@ const search = asyncHandler(async (req, res) => {
     const clauses = [];
     const params = [];
     if (keyword) {
-      clauses.push('(item_name ILIKE ? OR description ILIKE ? OR keywords ILIKE ?)');
-      const like = `%${keyword}%`;
-      params.push(like, like, like);
+      const match = keyword.trim().match(/^(lst|fnd)-(\d+)$/i);
+      if (match) {
+        const idVal = parseInt(match[2], 10);
+        const prefix = match[1].toLowerCase();
+        if ((table === 'lost_item_report' && prefix === 'lst') || (table === 'found_item_report' && prefix === 'fnd')) {
+          clauses.push(`${table === 'lost_item_report' ? 'lost_report_id' : 'found_report_id'} = ?`);
+          params.push(idVal);
+        } else {
+          clauses.push('1 = 0');
+        }
+      } else {
+        clauses.push('(item_name ILIKE ? OR description ILIKE ? OR keywords ILIKE ?)');
+        const like = `%${keyword}%`;
+        params.push(like, like, like);
+      }
     }
-    if (category) { clauses.push('category = ?'); params.push(category); }
+    if (category) { clauses.push('category ILIKE ?'); params.push(category); }
     if (location) { clauses.push(`${locationCol} ILIKE ?`); params.push(`%${location}%`); }
     if (date) { clauses.push(`${dateCol} = ?`); params.push(date); }
     const where = clauses.length ? `WHERE ${clauses.join(' AND ')}` : '';
