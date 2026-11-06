@@ -1,194 +1,115 @@
-# Campus Lost and Found System — Backend
+# Campus Lost and Found Backend
 
-Backend foundation for the **Campus Lost and Found System** (Group 6).
-Built and maintained by **Member 6 — Database & Backend Support**.
+Software Design course finals project, group of 7.
 
-This README is the **authoritative reference for backend folder organization**.
-All members (1–5) build their subsystems inside this structure and must not
-reorganize it.
+Express REST API with PostgreSQL (pg), JWT authentication and bcrypt. My role
+was backend and database work. See the [project README](../../README.md).
 
----
+## Setup
 
-## Tech Stack
+Use Node.js 20 or newer and an empty PostgreSQL database. From this folder:
 
-| Layer          | Technology              |
-| -------------- | ----------------------- |
-| Runtime        | Node.js                 |
-| Web framework  | Express.js              |
-| Database       | MySQL 8.x               |
-| DB driver      | mysql2                  |
-| Auth tokens    | JSON Web Token (JWT)    |
-| Password hash  | bcrypt                  |
-
----
-
-## Folder Structure
-
-```text
-backend/
-├── .env.example              # Template for environment variables (copy to .env)
-├── package.json              # Dependencies and scripts
-├── README.md                 # This file — folder structure + setup
-│
-├── database/
-│   ├── schema.sql            # DDL — creates all 5 tables (source: ENTITY_LIST.md)
-│   ├── seed.sql              # Sample data for development/testing
-│   └── generate-hashes.js    # Helper: produces real bcrypt hashes for seed users
-│
-└── src/
-    ├── server.js             # App entry point (created in Stage 2)
-    ├── app.js                # Express app + middleware wiring (Stage 2)
-    │
-    ├── config/               # Configuration (DB connection pool, env loading)
-    ├── middleware/           # JWT auth, role-based access, validation, errors
-    ├── models/               # One data-access module per entity (5 total)
-    ├── controllers/          # Request handlers implementing the API Specification
-    ├── routes/               # Express routers, mounted under /api/v1
-    └── utils/                # Shared helpers (response formatting, etc.)
+```powershell
+npm ci
+Copy-Item .env.example .env
 ```
 
-### Folder responsibilities
+Replace the placeholder database credentials and JWT signing secret. Set
+DB_PORT=5432 for a default local installation. DB_SSL=false is for local
+PostgreSQL without TLS. For hosted PostgreSQL requiring TLS, set DB_SSL=true;
+certificates are verified. Supply DB_SSL_CA if your provider requires a custom
+PEM CA certificate.
 
-| Folder             | Responsibility                                                        | Owner (primary)     |
-| ------------------ | -------------------------------------------------------------------- | ------------------- |
-| `database/`        | Schema, seed data, DB utilities                                      | Member 6            |
-| `src/config/`      | MySQL connection pool, environment configuration                     | Member 6            |
-| `src/middleware/`  | `authMiddleware` (JWT), `roleMiddleware` (RBAC), validation, errors  | Member 6 → Member 1 |
-| `src/models/`      | Data access for User, Lost, Found, Claim, Notification               | Member 6            |
-| `src/controllers/` | Business logic per module                                            | Members 1, 2, 3, 5  |
-| `src/routes/`      | Endpoint definitions under `/api/v1`                                 | Members 1, 2, 3, 5  |
-| `src/utils/`       | Cross-cutting helpers                                                 | Member 6            |
+Run npm run dev, or npm start without the development file watcher.
+Health endpoint: GET /health. API prefix: /api/v1.
 
-> **Boundary note:** Member 6 provides the User model plus reusable JWT and
-> role-based-access middleware. Member 1 implements the actual login /
-> registration / logout logic and role-gated page access on top of them.
+## Safe database initialization
 
----
+database/migrations/001-initial.sql creates the five tables, foreign keys and
+indexes without reset statements. The old database/schema.sql is removed.
+Startup and serverless requests share initialization. A transaction and
+PostgreSQL advisory lock serialize first startup; parameterized catalog
+queries check all five table names. An incomplete schema fails without
+changing existing tables. Initialization errors block requests.
 
-## Database Overview
+Run npm run db:init for the same non-destructive initialization explicitly.
+Startup never seeds accounts or alters existing photo columns. Existing
+installations needing schema changes require a reviewed migration. The
+initializing database user needs permission to create tables in public.
 
-Five entities, per the approved `ENTITY_LIST.md`:
+## Signup and role assignment
 
-| Table               | Primary Key       | Key Foreign Keys                                              |
-| ------------------- | ----------------- | ------------------------------------------------------------ |
-| `user`              | `university_id`   | —                                                            |
-| `lost_item_report`  | `lost_report_id`  | `university_id` → user; `matched_found_report_id` → found    |
-| `found_item_report` | `found_report_id` | `university_id` → user; `matched_lost_report_id` → lost      |
-| `claim_request`     | `claim_id`        | `found_report_id` → found; `claimant_university_id` → user; `reviewed_by_university_id` → user |
-| `notification`      | `notification_id` | `university_id` → user                                       |
+POST /api/v1/auth/login retains the existing frontend's first-time signup
+flow. Existing users keep their stored password hash and role. Unknown IDs
+matching YYYY-DXXXX (D is 0, 1 or 2) always create Students. A submitted role is
+ignored. New passwords require at least 12 characters and at most 72 UTF-8
+bytes. Signup alone does not verify university enrollment.
 
-**Bidirectional matching:** `lost_item_report` and `found_item_report`
-reference each other. The cross foreign keys are added with `ALTER TABLE`
-*after* both tables exist (see `schema.sql`).
+Blank profile emails use hidden accounts.example.invalid placeholders;
+legacy blank-profile placeholders remain compatible.
 
----
+Only a trusted operator with authorized backend database credentials runs:
 
-## Setup Instructions
-
-### 1. Prerequisites
-
-- Node.js (v18+ recommended)
-- MySQL Server 8.x running locally
-
-### 2. Install dependencies
-
-```bash
-cd backend
-npm install
+```powershell
+npm run db:set-role -- <existing-university-id> Admin
+npm run db:set-role -- <existing-university-id> Staff
 ```
 
-### 3. Configure environment
+Student is also accepted for demotion. This script updates only the role of
+an existing account and never changes its password. There is no public
+role-assignment endpoint. Authenticated requests load the current database role.
 
-```bash
-cp .env.example .env
+Existing deployed accounts are not removed or rotated by this change. Review
+previously self-assigned roles and old demo credentials separately.
+
+## Optional demo accounts
+
+No demo accounts are created at startup. For explicit local seeding, set
+NODE_ENV=development, ENABLE_DEMO_DATA=true and DEMO_PASSWORD in your ignored
+.env. The password must be 12+ characters and at most 72 UTF-8 bytes.
+
+```powershell
+npm run db:init
+npm run db:seed:demo
 ```
 
-Edit `.env` and set your real `DB_PASSWORD`, `JWT_SECRET`, etc.
+| ID | Role | Email |
+| --- | --- | --- |
+| DEMO-ADMIN-001 | Admin | demo.admin@example.com |
+| DEMO-STAFF-001 | Staff | demo.staff@example.com |
+| DEMO-STUDENT-001 | Student | demo.student@example.com |
 
-### 4. Create the database schema
+Contact numbers are NULL. campusDb.js defines the fictional fixtures; seed.sql
+receives them and a runtime bcrypt hash as parameters. SQL checks transaction-
+local development settings. Seeding never truncates, deletes or overwrites
+existing accounts. Old sample reports and notifications are no longer seeded.
 
-```bash
-mysql -u root -p < database/schema.sql
-```
+npm run db:generate-demo-hash uses the same guards and prints only a bcrypt
+hash. Plaintext command-line passwords are rejected. Do not paste generated
+hashes into tracked files. Production rejects both demo commands even if the
+flag is true. Running seed.sql directly is unsupported.
 
-This creates the `campus_lost_and_found` database and all five tables.
+## Separate destructive reset
 
-### 5. (Recommended) Generate real password hashes, then seed
+db:reset:destructive is an operator-only command, never called by startup or
+tests. It requires NODE_ENV=development, ALLOW_DATABASE_RESET=true and an exact
+--confirm-database=<DB_NAME> argument. It executes database/reset.sql and removes
+the application tables. Use only for a disposable development database.
 
-The seed users all use the password **`Password123!`**. To guarantee the
-bcrypt hashes match your local bcrypt setup, regenerate them first:
+## Verification
 
-```bash
-node database/generate-hashes.js
-```
+npm test runs database-free unit tests. The separate integration suite requires
+a fresh empty disposable PostgreSQL database with all of these settings:
 
-Paste the printed hashes into `database/seed.sql` (replacing the
-`password_hash` values), then load the seed data:
+- RUN_LOCAL_SECURITY_TESTS=true
+- DB_HOST=127.0.0.1
+- DB_PORT set to a non-default port (not 5432)
+- DB_NAME beginning with campus_security_test_
+- DB_USER and DB_PASSWORD for that local database
+- PORT set to an unused local HTTP port
 
-```bash
-mysql -u root -p campus_lost_and_found < database/seed.sql
-```
-
-### 6. Run the server
-
-```bash
-npm run dev     # development (auto-reload via nodemon)
-# or
-npm start       # production
-```
-
-The API is served under the base path **`/api/v1`**.
-
----
-
-## Seed Accounts
-
-All passwords: **`Password123!`**
-
-| Role    | university_id | email                          |
-| ------- | ------------- | ------------------------------ |
-| Admin   | 2021-00001    | alice.santos@university.edu    |
-| Staff   | 2021-00002    | benjamin.cruz@university.edu   |
-| Student | 2022-10001    | carla.reyes@university.edu     |
-| Student | 2022-10002    | daniel.mendoza@university.edu  |
-| Student | 2022-10003    | erika.villanueva@university.edu|
-
----
-
-## Architectural Rules (Frozen)
-
-These are locked per the approved project documents. Do **not** change them
-without updating `ENTITY_LIST.md` and getting re-approval:
-
-- Do not modify table names, attributes, or the schema.
-- Do not add, rename, or remove API endpoints (see `API_Specifications.md`).
-- Reports are **locked after submission** — only Admin/Staff-Security may edit
-  or delete them.
-- Only **one claim** may be Approved per Found Item Report.
-- `admin_remarks` is **required** when rejecting a claim, optional when approving.
-- Users **cannot claim** a Found Item Report they submitted themselves.
-- Notifications are **system-generated only**.
-
----
-
-## Known Documentation Discrepancy (flagged for reconciliation)
-
-The Notification report-link field is named:
-
-- **`related_report_id`** in `ENTITY_LIST.md` (the primary reference) — **used here**
-- `related_found_report_id` in `Data_Dictionary.md`
-
-This backend follows `ENTITY_LIST.md`, since that document is designated the
-primary reference for the SQL database and models. The `Data_Dictionary.md`
-entry should be updated to `related_report_id` so the two documents agree.
-
----
-
-## Build Status
-
-| Stage | Scope                                             | Status         |
-| ----- | ------------------------------------------------- | -------------- |
-| 1     | Foundation & database                             | ✅ Complete    |
-| 2     | App core & middleware (this stage)                | ✅ Complete    |
-| 3     | Models, controllers, routes (this stage)          | ✅ Complete    |
-| 4     | Self-verification & Backend Foundation Report     | ✅ Complete    |
+Then run npm run test:integration. Without opt-in, this suite skips. It starts
+the backend, tests Student-only signup, existing Admin/Staff logins, trusted
+role changes, production demo rejection and repeatable development fixtures.
+Restart checks compare rows and table identities. It never runs schema.sql,
+resets or database drops. Test data is retained.

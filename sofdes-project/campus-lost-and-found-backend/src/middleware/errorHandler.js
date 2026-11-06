@@ -6,7 +6,7 @@
  *   notFound     - catches requests to unknown routes and returns 404 JSON.
  *   errorHandler - final middleware; converts thrown errors into consistent
  *                  JSON responses. Recognizes ApiError (with statusCode) and
- *                  common MySQL errors (e.g., duplicate key, FK violations).
+ *                  common PostgreSQL errors (e.g., duplicate key, FK violations).
  * ---------------------------------------------------------------------------
  */
 
@@ -31,15 +31,15 @@ function errorHandler(err, req, res, next) {
     });
   }
 
-  // Translate a few common MySQL errors into friendly messages.
+  // Translate a few common PostgreSQL errors into friendly messages.
   if (err && err.code) {
     switch (err.code) {
-      case 'ER_DUP_ENTRY':
+      case '23505':
         return error(res, { statusCode: 409, message: 'A record with that value already exists.' });
-      case 'ER_NO_REFERENCED_ROW_2':
-      case 'ER_ROW_IS_REFERENCED_2':
+      case '23503':
         return error(res, { statusCode: 409, message: 'Operation violates a database relationship constraint.' });
-      case 'ER_BAD_NULL_ERROR':
+      case '23502':
+      case '23514':
         return error(res, { statusCode: 422, message: 'A required field was missing.' });
       default:
         break;

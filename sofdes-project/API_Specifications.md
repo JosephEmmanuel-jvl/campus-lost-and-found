@@ -42,7 +42,7 @@ Authentication is handled using JSON Web Tokens (JWT).
 
 Description
 
-Authenticates a registered user.
+Authenticates an existing user with their stored password and role. First-time login creates only a Student account. ID digits and submitted role fields never grant privileges. Roles are assigned through the trusted backend db:set-role command.
 
 ---
 

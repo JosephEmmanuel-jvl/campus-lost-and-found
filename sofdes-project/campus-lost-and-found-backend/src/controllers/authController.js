@@ -18,7 +18,7 @@ const { success } = require('../utils/apiResponse');
 const { signToken } = require('../middleware/authMiddleware');
 const userModel = require('../models/userModel');
 
-const { MOCK_CAMPUS_DATABASE } = require('../config/campusDb');
+const env = require('../config/env');
 
 const login = asyncHandler(async (req, res) => {
   const { university_id, password } = req.body;
@@ -44,20 +44,12 @@ const login = asyncHandler(async (req, res) => {
       throw new ApiError(400, 'Invalid University ID format. Must follow YYYY-DXXXX (where D is 0, 1, or 2).');
     }
 
-    // Determine the role from the first digit after the dash: 0 -> Admin, 1 -> Staff, 2 -> Student
-    const parts = university_id.split('-');
-    const roleDigit = parts[1]?.[0];
-    let assignedRole = 'Student';
-    if (roleDigit === '0') {
-      assignedRole = 'Admin';
-    } else if (roleDigit === '1') {
-      assignedRole = 'Staff';
-    } else if (roleDigit === '2') {
-      assignedRole = 'Student';
+    // Public first-time login is student signup, regardless of ID digits or body.role.
+    // Privileged roles can only be assigned with the trusted db:set-role command.
+    if (password.length < 12 || Buffer.byteLength(password, 'utf8') > 72) {
+      throw new ApiError(422, 'New passwords must be at least 12 characters and at most 72 UTF-8 bytes.');
     }
-
-    // Hash and save the entered password using bcrypt
-    const passwordHash = await bcrypt.hash(password, 10);
+    const passwordHash = await bcrypt.hash(password, env.bcryptSaltRounds);
 
     // Create a new user record in the USER table with empty first_name, last_name, and email
     user = await userModel.create({
@@ -67,7 +59,7 @@ const login = asyncHandler(async (req, res) => {
       email: '',
       passwordHash,
       contact_number: null,
-      role: assignedRole
+      role: 'Student'
     });
   }
 

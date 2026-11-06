@@ -1,7 +1,7 @@
 /**
  * src/models/userModel.js
  * ---------------------------------------------------------------------------
- * Data access for the USER entity. Uses the shared MySQL pool.
+ * Data access for the USER entity. Uses the shared PostgreSQL pool.
  *
  * This model is provided by Member 6 as part of the backend foundation.
  * Member 1 (Authentication) builds login/registration logic ON TOP of these
@@ -26,12 +26,12 @@ const userModel = {
     const [rows] = await pool.execute(
       `SELECT university_id, first_name, last_name, email, password_hash,
               contact_number, role, created_at
-         FROM user
+         FROM "user"
         WHERE university_id = ?`,
       [universityId]
     );
     const user = rows[0] || null;
-    if (user && user.email && user.email.includes('@temp.edu')) {
+    if (user && user.email && (user.email.endsWith('@temp.edu') || user.email.endsWith('@accounts.example.invalid'))) {
       user.email = '';
     }
     return user;
@@ -44,12 +44,12 @@ const userModel = {
     const [rows] = await pool.execute(
       `SELECT university_id, first_name, last_name, email, password_hash,
               contact_number, role, created_at
-         FROM user
+         FROM "user"
         WHERE email = ?`,
       [email]
     );
     const user = rows[0] || null;
-    if (user && user.email && user.email.includes('@temp.edu')) {
+    if (user && user.email && (user.email.endsWith('@temp.edu') || user.email.endsWith('@accounts.example.invalid'))) {
       user.email = '';
     }
     return user;
@@ -60,11 +60,11 @@ const userModel = {
    */
   async getProfile(universityId) {
     const [rows] = await pool.execute(
-      `SELECT ${USER_COLUMNS} FROM user WHERE university_id = ?`,
+      `SELECT ${USER_COLUMNS} FROM "user" WHERE university_id = ?`,
       [universityId]
     );
     const user = rows[0] || null;
-    if (user && user.email && user.email.includes('@temp.edu')) {
+    if (user && user.email && (user.email.endsWith('@temp.edu') || user.email.endsWith('@accounts.example.invalid'))) {
       user.email = '';
     }
     return user;
@@ -77,10 +77,10 @@ const userModel = {
   async create({ university_id, first_name = '', last_name = '', email = '', passwordHash, contact_number = null, role = 'Student' }) {
     const dbFirstName = first_name || '';
     const dbLastName = last_name || '';
-    const dbEmail = email || `${university_id.toLowerCase()}@temp.edu`;
+    const dbEmail = email || `${university_id.toLowerCase()}@accounts.example.invalid`;
 
     await pool.execute(
-      `INSERT INTO user
+      `INSERT INTO "user"
          (university_id, first_name, last_name, email, password_hash, contact_number, role)
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [university_id, dbFirstName, dbLastName, dbEmail, passwordHash, contact_number, role]
@@ -93,7 +93,7 @@ const userModel = {
    */
   async updateProfile(universityId, { first_name, last_name, email, contact_number }) {
     await pool.execute(
-      `UPDATE user
+      `UPDATE "user"
           SET first_name = COALESCE(?, first_name),
               last_name  = COALESCE(?, last_name),
               email      = COALESCE(?, email),
@@ -109,10 +109,10 @@ const userModel = {
    */
   async findAll() {
     const [rows] = await pool.execute(
-      `SELECT ${USER_COLUMNS} FROM user ORDER BY created_at DESC`
+      `SELECT ${USER_COLUMNS} FROM "user" ORDER BY created_at DESC`
     );
     return rows.map(user => {
-      if (user && user.email && user.email.includes('@temp.edu')) {
+      if (user && user.email && (user.email.endsWith('@temp.edu') || user.email.endsWith('@accounts.example.invalid'))) {
         user.email = '';
       }
       return user;

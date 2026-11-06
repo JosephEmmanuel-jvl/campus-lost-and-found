@@ -1,14 +1,4 @@
-/**
- * src/config/database.js
- * ---------------------------------------------------------------------------
- * Creates and exports a PostgreSQL connection pool wrapper that mimics
- * the mysql2 API to minimize refactoring across the codebase.
- *
- * It dynamically translates SQL syntax (MySQL ? placeholders to PostgreSQL $1, $2,
- * and quotes the reserved keyword "user").
- * ---------------------------------------------------------------------------
- */
-
+// PostgreSQL pool with the existing [rows, metadata] model interface.
 const { Pool } = require('pg');
 const env = require('./env');
 
@@ -20,14 +10,15 @@ const pgPool = new Pool({
   database: env.db.database,
   max: env.db.connectionLimit,
   // SSL is required for production databases like Supabase
-  ssl: env.nodeEnv === 'production' ? { rejectUnauthorized: false } : false,
+  ssl: env.db.ssl ? { rejectUnauthorized: true, ...(env.db.sslCa ? { ca: env.db.sslCa } : {}) } : false,
+  connectionTimeoutMillis: 10000,
 });
 
 function translateQuery(sql, params = []) {
   let index = 1;
-  let translatedSql = sql.replace(/\?/g, () => `$${index++}`);
-  // Quote the reserved keyword "user" as "\"user\"" for PostgreSQL compatibility
-  translatedSql = translatedSql.replace(/\buser\b/gi, '"user"');
+  // Skip SQL literals, quoted identifiers and comments when replacing placeholders.
+  const translatedSql = sql.replace(/'(?:''|[^'])*'|"(?:""|[^"])*"|--[^\n]*|\/\*[\s\S]*?\*\/|\$([a-zA-Z_][a-zA-Z_0-9]*|)\$[\s\S]*?\$\1\$|\?/g,
+    token => token === '?' ? `$${index++}` : token);
   return { sql: translatedSql, params };
 }
 
@@ -37,7 +28,7 @@ function formatResult(sql, res) {
     return [res.rows, null];
   }
   
-  // For INSERT/UPDATE/DELETE, return a mysql2-compatible result object
+  // For INSERT/UPDATE/DELETE, return a model-compatible result object
   let insertId = null;
   if (res.rows && res.rows[0]) {
     const row = res.rows[0];
@@ -104,4 +95,4 @@ async function testConnection() {
   }
 }
 
-module.exports = { pool, testConnection };
+module.exports = { pool, pgPool, testConnection, translateQuery };

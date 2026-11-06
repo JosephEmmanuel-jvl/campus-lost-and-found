@@ -3,13 +3,13 @@
  * ---------------------------------------------------------------------------
  * Shared enumerations used across models, controllers, and validation.
  * Keeping these in one place ensures the API, validation, and database stay
- * in sync with the approved schema (schema.sql).
+ * in sync with the approved schema (database/migrations/001-initial.sql).
  *
  * NOTE ON CATEGORIES:
  *   ENTITY_LIST.md / CHANGELOG mention "explicit category enumeration" but do
  *   not list the exact values. These were defined by Member 6 to fill that gap
- *   and MUST match the ENUM in schema.sql. If the team agrees on a different
- *   list, update BOTH this file and schema.sql together.
+ *   and MUST match the CHECK constraint in database/migrations/001-initial.sql. If the team agrees on a different
+ *   list, update BOTH this file and database/migrations/001-initial.sql together.
  * ---------------------------------------------------------------------------
  */
 
