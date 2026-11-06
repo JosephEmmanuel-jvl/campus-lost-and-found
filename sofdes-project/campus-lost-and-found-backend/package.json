@@ -1,19 +1,24 @@
 {
   "name": "campus-lost-and-found-backend",
   "version": "1.0.0",
-  "description": "Backend foundation for the Campus Lost and Found System (Group 6). Express.js + MySQL REST API implementing the approved Entity List and API Specification.",
+  "description": "Software Design course finals project: Express and PostgreSQL backend.",
   "main": "src/server.js",
   "type": "commonjs",
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "db:schema": "mysql -u %DB_USER% -p %DB_NAME% < database/schema.sql",
-    "db:seed": "mysql -u %DB_USER% -p %DB_NAME% < database/seed.sql"
+    "test": "node --test test/*.test.js",
+    "test:integration": "node --test test/integration/*.test.js",
+    "db:init": "node database/init.js",
+    "db:seed:demo": "node database/seed-demo.js",
+    "db:generate-demo-hash": "node database/generate-hashes.js",
+    "db:set-role": "node database/set-user-role.js",
+    "db:reset:destructive": "node database/reset-destructive.js"
   },
   "keywords": [
     "lost-and-found",
     "express",
-    "mysql",
+    "postgresql",
     "rest-api",
     "campus"
   ],
@@ -25,7 +30,6 @@
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "jsonwebtoken": "^9.0.2",
-    "mysql2": "^3.11.0",
     "pg": "^8.22.0"
   },
   "devDependencies": {

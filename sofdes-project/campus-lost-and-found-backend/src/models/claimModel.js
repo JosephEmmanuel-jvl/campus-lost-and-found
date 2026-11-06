@@ -32,7 +32,7 @@ const claimModel = {
               f.category   AS found_item_category,
               f.photo_url  AS found_item_photo_url
          FROM claim_request c
-         JOIN user u ON u.university_id = c.claimant_university_id
+         JOIN "user" u ON u.university_id = c.claimant_university_id
          JOIN found_item_report f ON f.found_report_id = c.found_report_id
         WHERE c.claim_id = ?`,
       [Number(claimId)]
@@ -63,7 +63,7 @@ const claimModel = {
               f.category   AS found_item_category,
               f.photo_url  AS found_item_photo_url
          FROM claim_request c
-         JOIN user u ON u.university_id = c.claimant_university_id
+         JOIN "user" u ON u.university_id = c.claimant_university_id
          JOIN found_item_report f ON f.found_report_id = c.found_report_id
          ${where}
         ORDER BY c.created_at DESC`,

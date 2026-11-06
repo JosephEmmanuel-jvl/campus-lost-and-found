@@ -12,12 +12,7 @@
 --   keys are added with ALTER TABLE statements AFTER both tables exist.
 -- ===========================================================================
 
--- Drop tables in reverse dependency order using CASCADE for clean setup.
-DROP TABLE IF EXISTS notification CASCADE;
-DROP TABLE IF EXISTS claim_request CASCADE;
-DROP TABLE IF EXISTS found_item_report CASCADE;
-DROP TABLE IF EXISTS lost_item_report CASCADE;
-DROP TABLE IF EXISTS "user" CASCADE;
+-- Initial creation only. No drops, resets, or seed data.
 
 -- ===========================================================================
 -- Entity 1 - USER

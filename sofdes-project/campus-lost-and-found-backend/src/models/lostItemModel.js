@@ -28,7 +28,7 @@ const lostItemModel = {
     const [rows] = await pool.execute(
       `SELECT l.*, u.first_name, u.last_name, u.email
          FROM lost_item_report l
-         JOIN user u ON u.university_id = l.university_id
+         JOIN "user" u ON u.university_id = l.university_id
         WHERE l.lost_report_id = ?`,
       [Number(lostReportId)]
     );
@@ -48,7 +48,7 @@ const lostItemModel = {
     const [rows] = await pool.execute(
       `SELECT l.*, u.first_name, u.last_name
          FROM lost_item_report l
-         JOIN user u ON u.university_id = l.university_id
+         JOIN "user" u ON u.university_id = l.university_id
          ${where}
         ORDER BY l.created_at DESC`,
       params

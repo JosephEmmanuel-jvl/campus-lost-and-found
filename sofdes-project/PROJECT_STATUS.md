@@ -165,7 +165,7 @@ Develop a centralized web-based Campus Lost and Found System for university use 
 
 ## Database
 
-* MySQL
+* PostgreSQL
 
 ## Authentication
 

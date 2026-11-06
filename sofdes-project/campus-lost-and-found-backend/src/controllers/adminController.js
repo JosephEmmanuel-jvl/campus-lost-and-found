@@ -34,7 +34,7 @@ const dashboard = asyncHandler(async (req, res) => {
     approvedClaims,
     matchedLost,
   ] = await Promise.all([
-    scalar('SELECT COUNT(*) AS value FROM user'),
+    scalar('SELECT COUNT(*) AS value FROM "user"'),
     scalar('SELECT COUNT(*) AS value FROM lost_item_report'),
     scalar('SELECT COUNT(*) AS value FROM found_item_report'),
     scalar("SELECT COUNT(*) AS value FROM claim_request WHERE status = 'Pending'"),

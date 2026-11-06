@@ -38,6 +38,8 @@ const env = {
     password: optional('DB_PASSWORD', ''),
     database: required('DB_NAME'),
     connectionLimit: parseInt(optional('DB_CONNECTION_LIMIT', '10'), 10),
+    ssl: optional('DB_SSL', process.env.NODE_ENV === 'production' ? 'true' : 'false') === 'true',
+    sslCa: optional('DB_SSL_CA', ''),
   },
 
   // Auth

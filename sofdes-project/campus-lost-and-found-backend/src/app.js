@@ -24,30 +24,10 @@ const path = require('path');
 
 const app = express();
 
-// --- Database Auto-Initialization for Serverless (Vercel) -----------------
-let dbInitialized = false;
-app.use(async (req, res, next) => {
-  if (!dbInitialized) {
-    try {
-      const { pool } = require('./config/database');
-      const { initializeDatabase, ensureMockUsersExist } = require('./config/initDb');
-      await initializeDatabase(pool);
-      await ensureMockUsersExist(pool);
-
-      // Ensure photo_url can store base64 data URLs
-      try {
-        await pool.query('ALTER TABLE lost_item_report ALTER COLUMN photo_url TYPE TEXT');
-        await pool.query('ALTER TABLE found_item_report ALTER COLUMN photo_url TYPE TEXT');
-      } catch (migrationErr) {
-        console.error('[Vercel DB Migration Error]', migrationErr);
-      }
-
-      dbInitialized = true;
-    } catch (err) {
-      console.error('[Vercel DB Init Error]', err);
-    }
-  }
-  next();
+// Share initialization with the local server; failed initialization blocks requests.
+const { ensureDatabaseReady } = require('./config/initDb');
+app.use((req, res, next) => {
+  ensureDatabaseReady().then(() => next(), next);
 });
 
 // --- Global middleware ----------------------------------------------------

@@ -23,7 +23,7 @@ const foundItemModel = {
     const [rows] = await pool.execute(
       `SELECT f.*, u.first_name, u.last_name, u.email
          FROM found_item_report f
-         JOIN user u ON u.university_id = f.university_id
+         JOIN "user" u ON u.university_id = f.university_id
         WHERE f.found_report_id = ?`,
       [Number(foundReportId)]
     );
@@ -40,7 +40,7 @@ const foundItemModel = {
     const [rows] = await pool.execute(
       `SELECT f.*, u.first_name, u.last_name
          FROM found_item_report f
-         JOIN user u ON u.university_id = f.university_id
+         JOIN "user" u ON u.university_id = f.university_id
          ${where}
         ORDER BY f.created_at DESC`,
       params
