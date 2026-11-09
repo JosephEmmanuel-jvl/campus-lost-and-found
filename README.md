@@ -24,8 +24,11 @@ reports and claims, while staff and administrators manage reports and returns.
 
 This was a seven-person group project. JiiGu developed the initial backend,
 including its database foundation, before the project was added to GitHub.
-My later contributions included authentication persistence, image uploads,
-search improvements, access rules, and safer database startup.
+Steffi Hilario worked on frontend authentication and user management,
+connecting React login and profile interfaces to the existing Express API.
+Her work covered JWT session handling, protected routes, logout, and
+API-backed profile viewing and editing. My later contributions included image
+uploads, search improvements, access rules, and safer database startup.
 
 ## Run locally
 
