@@ -20,10 +20,12 @@ reports and claims, while staff and administrators manage reports and returns.
 - Student, staff and admin interfaces
 - Editable user profiles
 
-## My role
+## Contributions
 
-I worked on the backend and database, including the schema, SQL queries and API
-support for the application. This was a group project.
+This was a seven-person group project. JiiGu developed the initial backend,
+including its database foundation, before the project was added to GitHub.
+My later contributions included authentication persistence, image uploads,
+search improvements, access rules, and safer database startup.
 
 ## Run locally
 
