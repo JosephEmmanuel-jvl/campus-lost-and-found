@@ -59,6 +59,9 @@ test('fresh local PostgreSQL startup, roles, fixtures and restart preservation',
       await start();
       assert.equal((await db.query("SELECT * FROM pg_tables WHERE schemaname='public'")).rowCount, 5);
       assert.equal((await db.query('SELECT * FROM public."user"')).rowCount, 0);
+      const rls = await db.query("SELECT relname FROM pg_class JOIN pg_namespace ON pg_namespace.oid = pg_class.relnamespace WHERE nspname = 'public' AND relkind = 'r' AND relrowsecurity = true");
+      assert.deepEqual(rls.rows.map(row => row.relname).sort(),
+        ['claim_request', 'found_item_report', 'lost_item_report', 'notification', 'user']);
     });
     const ids = ['2099-00001', '2099-10001', '2099-20001'];
     let studentToken;

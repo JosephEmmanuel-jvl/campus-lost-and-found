@@ -26,7 +26,8 @@ Health endpoint: GET /health. API prefix: /api/v1.
 ## Safe database initialization
 
 database/migrations/001-initial.sql creates the five tables, foreign keys and
-indexes without reset statements. The old database/schema.sql is removed.
+indexes without reset statements. It also enables row level security (RLS).
+The old database/schema.sql is removed.
 Startup and serverless requests share initialization. A transaction and
 PostgreSQL advisory lock serialize first startup; parameterized catalog
 queries check all five table names. An incomplete schema fails without
@@ -36,6 +37,17 @@ Run npm run db:init for the same non-destructive initialization explicitly.
 Startup never seeds accounts or alters existing photo columns. Existing
 installations needing schema changes require a reviewed migration. The
 initializing database user needs permission to create tables in public.
+
+For an existing Supabase database, review and manually run
+`database/migrations/002-protect-supabase-data-api.sql` through the SQL editor.
+It enables RLS and revokes Data API access from Supabase's anon and
+authenticated roles.
+First confirm that the backend's `DB_USER` owns the five tables or has
+`BYPASSRLS`; another database role would be blocked without suitable policies.
+This app uses its own JWT login and a direct PostgreSQL connection, not
+Supabase Auth or the browser Data API. The migration does not modify existing
+users or other rows, and startup does not apply it automatically. Afterward,
+check that the backend can log in and that Supabase reports RLS enabled.
 
 ## Signup and role assignment
 

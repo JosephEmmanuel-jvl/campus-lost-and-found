@@ -201,3 +201,12 @@ CREATE INDEX idx_claim_status ON claim_request (status);
 
 CREATE INDEX idx_notification_user ON notification (university_id);
 CREATE INDEX idx_notification_is_read ON notification (is_read);
+
+-- The application uses a direct PostgreSQL connection. Its JWTs are not
+-- Supabase Auth JWTs, so the Data API must not access these tables.
+-- The table owner can still use them through the direct connection.
+ALTER TABLE "user" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE lost_item_report ENABLE ROW LEVEL SECURITY;
+ALTER TABLE found_item_report ENABLE ROW LEVEL SECURITY;
+ALTER TABLE claim_request ENABLE ROW LEVEL SECURITY;
+ALTER TABLE notification ENABLE ROW LEVEL SECURITY;
